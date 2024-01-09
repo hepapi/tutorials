@@ -1,0 +1,47 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "ToDo Listesi";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="text" asp-for="NewTodo" placeholder="Yeni bir ToDo girin">
+    <input type="submit" value="Ekle" />
+</form>
+
+<!-- <button id="listButton" type="button">Listele</button> -->
+<form method="get">
+    <button type="submit">Listele</button>
+</form>
+
+<ul id="todoList">
+    <!-- Mevcut ToDo'lar burada listelenecek -->
+    @foreach(var todo in IndexModel.Todos)
+    {
+        <li>@todo</li>
+    }
+</ul>
+
+@section Scripts {
+    <script>
+        document.getElementById('listButton').addEventListener('click', function() {
+            fetch('Index?handler=Todos')
+                .then(response => response.json())
+                .then(todos => {
+                    const listElement = document.getElementById('todoList');
+                    listElement.innerHTML = ''; // Listeyi temizle
+                    todos.forEach(todo => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = todo;
+                        listElement.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Unable to load todos.', error);
+                });
+        });
+    </script>
+}

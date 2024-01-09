@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-demo
+spec:
+  containers:
+  - name: main-app
+    image: nginx
+  - name: logger-sidecar
+    image: fluentd
+    volumeMounts:
+    - name: log-volume
+      mountPath: /var/log/nginx
+  volumes:
+  - name: log-volume
+    emptyDir: {}

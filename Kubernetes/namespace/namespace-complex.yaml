@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: advanced-namespace
+  labels:
+    name: advanced-namespace
+  annotations:
+    description: "Advanced Namespace for specific environments"
+    owner: "Team Name"
