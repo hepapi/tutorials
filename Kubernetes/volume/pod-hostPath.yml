@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hepapi-pod
+  labels:
+    app: hepapi-web 
+spec:
+  volumes:
+    - name: hepapi-pv-storage
+      persistentVolumeClaim:
+        claimName: clarus-pv-claim
+  containers:
+    - name: hepapi-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: hepapi-pv-storage
