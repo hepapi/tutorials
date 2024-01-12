@@ -1,15 +1,24 @@
-kind: Pod
-apiVersion: v1
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: apple-app
+  name: apple-app-deployment
   labels:
     app: apple
 spec:
-  containers:
-    - name: apple-app
-      image: hashicorp/http-echo
-      args:
-        - "-text=apple"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: apple
+  template:
+    metadata:
+      labels:
+        app: apple
+    spec:
+      containers:
+      - name: apple-app
+        image: hashicorp/http-echo
+        args:
+          - "-text=apple"
 ---
 kind: Service
 apiVersion: v1

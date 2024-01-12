@@ -1,15 +1,24 @@
-kind: Pod
-apiVersion: v1
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: banana-app
+  name: banana-app-deployment
   labels:
     app: banana
 spec:
-  containers:
-    - name: banana-app
-      image: hashicorp/http-echo
-      args:
-        - "-text=banana"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: banana
+  template:
+    metadata:
+      labels:
+        app: banana
+    spec:
+      containers:
+      - name: banana-app
+        image: hashicorp/http-echo
+        args:
+          - "-text=banana"
 
 ---
 
