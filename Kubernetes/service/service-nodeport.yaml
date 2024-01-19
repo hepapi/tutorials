@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: petclinic-deploy
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: petclinic
@@ -31,4 +31,4 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-    # nodePort: 30000
+    nodePort: 30001

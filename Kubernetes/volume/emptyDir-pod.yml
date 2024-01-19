@@ -1,10 +1,17 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: hepapi-pod
+  name: emptydir-pod
   labels:
     app: nginx
 spec:
+  initContainers:
+  - name: init-download
+    image: busybox
+    command: ['sh', '-c', 'wget -O /data/demo.txt https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml']
+    volumeMounts:
+    - name: emptydir-test
+      mountPath: /data
   containers:
   - name: mynginx
     image: nginx:1.19
