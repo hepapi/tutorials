@@ -23,11 +23,8 @@ spec:
               configMapKeyRef:
                 name: configmap-variable
                 key: company_name
-          # - name: EMPLOYEE_NAME
-          #   valueFrom:
-          #     configMapKeyRef:
-          #       name: configmap-variable
-          #       key: employee_name
+      
+    
           envFrom:
           - configMapRef:
               name: configmap-variable

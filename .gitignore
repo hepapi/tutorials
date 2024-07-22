@@ -57,4 +57,4 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-*/java/*
+*/dotnet/*

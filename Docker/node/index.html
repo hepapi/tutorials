@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple App</title>
+</head>
+<body>
+  <h1>Data Entry</h1>
+  <form action="/data" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br>
+    <label for="data">Data:</label>
+    <input type="text" id="data" name="data" required>
+    <br>
+    <button type="submit">Save Data</button>
+  </form>
+
+  <h2>Saved Data</h2>
+  <ul id="data-list"></ul>
+
+  <script>
+    async function fetchData() {
+      const response = await fetch('/data');
+      const data = await response.json();
+      const dataList = document.getElementById('data-list');
+      dataList.innerHTML = '';
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `Username: ${item.username}, Data: ${item.data}`;
+        dataList.appendChild(li);
+      });
+    }
+    fetchData();
+  </script>
+</body>
+</html>
