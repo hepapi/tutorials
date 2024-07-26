@@ -16,23 +16,12 @@ spec:
     spec:
       containers:
         - name: app-container
-          image: my-app:latest
+          image: sametustaoglu/simple-node-app:small-size
           ports:
-            - containerPort: 8080
+            - containerPort: 3000
           env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: my-app-secret
-                  key: database-url
             - name: LOG_LEVEL
               value: "warn"
-          envFrom:
-            - configMapRef:
-                name: my-app-config
-          volumeMounts:
-            - name: app-config
-              mountPath: /etc/config
           resources:
             requests:
               memory: "128Mi"
@@ -42,17 +31,15 @@ spec:
               cpu: "1"
           readinessProbe:
             httpGet:
-              path: /readiness
-              port: 8080
+              path: /
+              port: 3000
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: 8080
+              path: /
+              port: 3000
             initialDelaySeconds: 15
             periodSeconds: 20
-      volumes:
-        - name: app-config
-          configMap:
-            name: my-app-config
+  strategy:
+   type: Recreate
