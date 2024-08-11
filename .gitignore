@@ -61,4 +61,4 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-*/dotnet/*
+*/dotnet/*.DS_Store
