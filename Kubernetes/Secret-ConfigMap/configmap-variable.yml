@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: configmap-variable
-data:
-  company_name: RAY
-  employee_name: Ahmet

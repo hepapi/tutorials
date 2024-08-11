@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: complex-pod-example
+  labels:
+    app: myapp
+spec:
+  containers:
+    - name: main-container
+      image: nginx
+      ports:
+        - containerPort: 80
+      env:
+        - name: ENV_VAR1
+          value: "value1"
+        - name: ENV_VAR2
+          valueFrom:
+            configMapKeyRef:
+              name: my-config-map
+              key: config-key
+      volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+        - name: secret-volume
+          mountPath: /etc/secret
+        - name: persistent-storage
+          mountPath: /data
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+      readinessProbe:
+        httpGet:
+          path: /readiness
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 80
+        initialDelaySeconds: 15
+        periodSeconds: 20
+  restartPolicy: Always
+  serviceAccountName: my-service-account
+  nodeSelector:
+    disktype: ssd
+  tolerations:
+  - key: "key"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"

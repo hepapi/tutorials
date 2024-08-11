@@ -1,0 +1,10 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-sc
+parameters:
+  archiveOnDelete: 'true'
+  pathPattern: ${.PVC.namespace}-${.PVC.name}
+provisioner: cluster.local/nfs-subdir-external-provisioner
+volumeBindingMode: Immediate

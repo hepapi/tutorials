@@ -1,0 +1,28 @@
+# pod-with-init-container.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-container-pod
+spec:
+  initContainers:
+  - name: init-myservice
+    image: busybox:1.31
+    command:
+    - wget
+    - "-O"
+    - "/work-dir/index.html"
+    - "https://www.example.com"
+    volumeMounts:
+    - name: workdir
+      mountPath: "/work-dir"
+  containers:
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: workdir
+      mountPath: "/usr/share/nginx/html"
+  volumes:
+  - name: workdir
+    emptyDir: {}

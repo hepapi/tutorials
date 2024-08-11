@@ -1,3 +1,7 @@
+other/
+other/*
+notes.md
+
 # Compiled class file
 *.class
 
