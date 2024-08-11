@@ -1,21 +1,24 @@
+# Use the official .NET SDK image
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
-WORKDIR /source
-
-COPY *.csproj .
-
-RUN dotnet restore
-
-COPY . .
-
-RUN dotnet publish -c release -o /app --no-restore
-
-
-# An image containing only runtime components
-FROM mcr.microsoft.com/dotnet/aspnet:6.0      
-
+# Set the working directory
 WORKDIR /app
 
-COPY --from=build /app . 
+# Copy the project file and restore any dependencies
+COPY MyApp.csproj ./
+RUN dotnet restore
 
+# Copy the rest of the application
+COPY . ./
+
+# Build the application
+RUN dotnet publish -c release -o /app
+
+# Set the working directory to the output folder
+WORKDIR /app
+
+# Expose the application port
+EXPOSE 8080
+
+# Run the application
 ENTRYPOINT ["dotnet", "MyApp.dll"]

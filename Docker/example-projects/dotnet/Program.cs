@@ -1,23 +1,9 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Http;
-using System.IO;
 
-var builder = WebApplication.CreateBuilder();
-builder.Services.AddRazorPages();
-
+var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-}
+app.MapGet("/", () => "Hello, World!");
 
-app.UseStaticFiles();
-app.UseRouting();
-
-app.MapRazorPages();
-app.MapGet("/", () => Results.Redirect("/Index"));
-
-app.Run();
+app.Run("http://0.0.0.0:8080");
