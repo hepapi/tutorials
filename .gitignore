@@ -3,6 +3,7 @@ Kubernetes/examples/kubernetes-network
 Kubernetes/examples/kubernetes-volume
 Kubernetes/examples/kubernetes-rbac
 Kubernetes/hands-on/Lesson-2-3-Kubernetes-Core-Objects.md
+.DS_Store
 
 other/
 other/*
