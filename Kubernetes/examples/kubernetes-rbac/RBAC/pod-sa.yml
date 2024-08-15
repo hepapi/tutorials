@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: kubepod
-spec:
-  containers:
-  - image: hepapi/kubectl
-    name:  kubepod
-  serviceAccountName: mysa
