@@ -1,3 +1,4 @@
+Kubernetes/examples/** 
 Kubernetes/examples/kubernetes-core-objects
 Kubernetes/examples/kubernetes-network
 Kubernetes/examples/kubernetes-volume
