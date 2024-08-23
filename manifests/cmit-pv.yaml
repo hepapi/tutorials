@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cmit-pv-vol
+  labels:
+    type: local
+spec:
+  storageClassName: nfs
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  # hostPath:
+  #   path: "/home/docker/pv-data"
+  persistentVolumeReclaimPolicy: Delete
+  nfs:
+    path: /mnt/cmit
+    server: 192.168.64.8
