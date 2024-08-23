@@ -10,10 +10,14 @@ Kubernetes offers HTTP GET, TCP socket, gRPC, and liveness command probe types, 
 An HTTP GET liveness probe is a common choice to determine container health when your container exposes a web service or an HTTP endpoint. The probe uses an HTTP GET request to the specified endpoint, where the container is considered healthy if the response has a successful HTTP status code (between 200 and 399)
 
 We have created a Docker image to test the liveness probe. The pod running this image performs checks on the specified path every 3 seconds. The pod's behavior is configured to return a success status for the first 30 seconds, followed by a failure status for the next 30 seconds. During the failure period, the pod will be restarted as the liveness probe detects the failure
+```bash
+  mkdir -p Kubernetes/examples/kubernetes-network/probes
+  cd Kubernetes/examples/kubernetes-network/probes
+```
 
 - Create liveness-pod-http.yaml and copy below code.
 
-```bash
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -28,8 +32,9 @@ spec:
       httpGet:
         path: /health
         port: 80
-      initialDelaySeconds: 10
-      periodSeconds: 3
+      initialDelaySeconds: 10 # default 0
+      failureThreshold: 1 # default 3
+      periodSeconds: 3 # default 10
 ---
 apiVersion: v1
 kind: Service   
@@ -42,7 +47,6 @@ spec:
   selector:
     test: liveness
 ```
-
 
 - In the configuration file, you can see that the Pod has a single container. 
 
@@ -58,6 +62,7 @@ spec:
 
 
 ```bash
+kubectl apply -f liveness-pod-http.yaml
 kubectl port-forward svc/liveness-svc 8080:80
 ```
 

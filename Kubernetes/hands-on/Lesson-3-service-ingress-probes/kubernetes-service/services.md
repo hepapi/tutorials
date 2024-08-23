@@ -6,9 +6,14 @@ ClusterIP Services assign an IP address that can be used to reach the Service fr
 
 ### Deploy the sample app
 
-First, copy the following Deployment manifest and save it as app.yaml in your working directory:
 ```bash
- apiVersion: apps/v1
+  mkdir -p Kubernetes/examples/kubernetes-network/service
+  cd Kubernetes/examples/kubernetes-network/service
+```
+
+First, copy the following Deployment manifest and save it as app.yaml in your working directory:
+```yaml
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
@@ -43,21 +48,22 @@ kubectl apply -f app.yaml
 
 Now your NGINX deployment is running, but you don’t have a way to access it. Although you could directly connect to the Pods, this doesn’t load balance and will lead to errors if one of the Pods becomes unhealthy or is replaced. Creating a Service allows you to route traffic between the replicas so you can reliably access the Deployment.
 
-- The following manifest defines a simple ClusterIP service:
+- The following manifest defines a simple ClusterIP service. Save it as clusterip.yaml:
 
-```bash
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-clusterip
 spec:
-  type: ClusterIP
+  type: ClusterIP # default value is clusterip
   selector:
     app: nginx
   ports:
     - port: 8080
       targetPort: 80
 ```
+
 
 There are a few points to note in the manifest:
 
@@ -78,24 +84,53 @@ kubectl get services
 kubectl describe service/nginx-clusterip
 ```
 
-In this example, the service has the IP address 10.111.148.15 You can now connect to this IP from within your cluster in order to reach your NGINX Deployment, with automatic load balancing between your three Pod replicas.
+In this example, the service has the IP address <service-ip-address> You can now connect to this IP from within your cluster in order to reach your NGINX Deployment, with automatic load balancing between your three Pod replicas.
 
-To check test create pud that is using nginx image
+#### Create New Pod For Testing
+To check test create pod that is using nginx image
 
 ```bash
 kubectl create namespace test
 kubectl run test-pod --image=nginx -n test
-kubectl exec -it -n test test-pod -- sh
-curl <cluster-ip-service-ip>:8080
+kubectl exec -it -n test test-pod -- bash
+curl http://<cluster-ip-service-ip>:8080
 curl nginx-clusterip.default.svc.cluster.local:8080
+# check dns resolution
+apt update && apt install dnsutils -y
+nslookup nginx-clusterip.default # see service ip address
+```
+#### Understanding Label and Selector Better
+
+- Create a new pod with same label but different name. Copy the following Pod manifest and save it as custom-pod.yaml in your working directory:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: uvey-ngin
+  labels:
+    app: nginx #same label
+spec:
+  containers:
+    - name: nginx
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+```
+
+```bash
+  kubectl apply -f custom-pod.yaml
+  kubectl describe service/nginx-clusterip
+  # Endpoints is a Kubernetes object that represents the resources behind a service. Its abbreviation is ep.
+  kubectl get endpoints 
+  kubectl describe endpoints nginx-clusterip
 ```
 
 ### Create a NodePort Service
 
-Now, let’s externally expose the Deployment using a NodePort Service. The manifest is similar to a ClusterIP Service—specify type: NodePort instead of type: ClusterIP and use the ports.nodePort field to set the Node port to listen on
+Let’s externally expose the Deployment using a NodePort Service. Specify type: NodePort instead of type: ClusterIP in the manifest and use the ports. A NodePort exposes an app to external traffic by opening a specific port on all nodes, with a port range of 30000 to 32767. If not specified, Kubernetes assigns a port within this range automatically.
 
-
-```bash
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -109,11 +144,7 @@ spec:
       nodePort: 32000
 ```
 
-You can omit the nodePort field, in which case the port number given by the port field will be used. The manifest above specifies that Node port 32000 will direct traffic to port 80 at your app: nginx Pods
-
-
 Save the manifest as nodeport.yaml and use kubectl to apply it.
-
 
 ```bash
 kubectl apply -f nodeport.yaml
@@ -129,7 +160,6 @@ In this demo, we’re using a local Minikube cluster with no external IP address
 
 - Run service tunnel
 
-
 ```bash
 minikube service nginx-nodeport --url
 ```
@@ -144,8 +174,7 @@ http://127.0.0.1:TUNNEL_PORT
 
 The simplest LoadBalancer Service looks very similar to ClusterIP Services
 
-
-```bash
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -191,12 +220,18 @@ kubectl get pods -n ingress-nginx
 - Create web-service.yaml file and copy below code to inside
 
 ```bash
+  cd ..
+  mkdir ingress && cd ingress
+```
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-service
   namespace: default
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: web-service
@@ -233,7 +268,7 @@ kubectl apply -f web-service.yaml
 
 - Create inventory-service.yaml file and copy below code to inside
 
-```bash
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -279,7 +314,7 @@ kubectl apply -f inventory-service.yaml
 - Create ingress.yaml file and copy below code.
 
 
-```bash
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
