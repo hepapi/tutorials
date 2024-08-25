@@ -2,39 +2,46 @@
 
 Purpose of this hands-on training is to give participants the knowledge of Kubernetes Volumes.
 
-## Learning Outcomes
+# Pre-requisites
 
-At the end of the this hands-on training, students will be able to;
+- **Install Multipass**
+  Follow the instructions for your OS here: [https://multipass.run/docs/install-multipass#install]
+  - For Mac: brew install multipass
+  - For Windows: [https://multipass.run/download/windows]
+- Install Helm CLI
+  - For windows: 
+    - choco install kubernetes-helm
+    - scoop install helm
+    - winget install Helm.Helm
+  - For Mac:
+    - brew install helm
 
-- Explain the need for persistent data management.
+## Kubernetes Volume Types
 
-- Learn `Persistent Volumes` and `Persistent Volume Claims`.
-
-## Outline
-
-- Part 1 - Kubernetes Volume Ephemeral (Empthydir - Hostpath)
+- Part 1 - Kubernetes Volume Ephemeral (Emptydir - Hostpath)
 
 - Part 2 - Kubernetes Volume Persistence (Static - Dinamic volume)
 
 
-## Part 1 - Kubernetes Volume Ephemeral (Empthydir-Hostpath)
-
-
-- Launch minikube cluster
+## Part 1 - Kubernetes Volume Ephemeral (Emptydir-Hostpath)
 
 - Check if Kubernetes is running and nodes are ready.
 
 ```bash
-kubectl cluster-info
-kubectl get no
+kubectl get nodes
 ```
-
-### Empthydir
-- Create a `cmit-pod-empthydir.yaml` file that uses empthydir volume using the following content.
+  
+### Emptydir
+- Create a `pod-emptydir.yaml` file that uses emptydir volume using the following content.
 
 ```bash
-nano cmit-pod-empthydir.yaml
+  mkdir -p Kubernetes/examples/volumes
+  cd Kubernetes/examples/volumes
+  touch pod-emptydir.yaml
 ```
+
+- In the pod manifest below, an emptyDir volume is used. The emptyDir volume is for sharing data between containers within the same pod.
+  The /cache directory in the frontend pod and the /tmp/log directory in the sidecar pod will share the same volume.
 
 ```yaml
 apiVersion: v1
@@ -44,7 +51,7 @@ metadata:
 spec:
   containers:
   - name: frontend
-    image: ozgurozturknet/k8s:blue
+    image: sametustaoglu/volume:v1
     ports:
     - containerPort: 80
     livenessProbe:
@@ -68,52 +75,52 @@ spec:
     emptyDir: {}
 ```
 
-- Create and Log into the emptydir pod and create some files
+- Create and exec into the emptyDir pod and create some files.
 
 ```bash
-kubectl apply -f cmit-pod-empthydir.yaml
+kubectl apply -f pod-emptydir.yaml
+```
+- Let's enter the frontend pod with the exec command, create some files, and try to see those files in the sidecar container.
 
-kubectl exec -it empthdir -c frontend -- bash
-cd /
-cd cache
-
-touch test1.txt
-touch test2.txt
-touch test{1..3}.txt
-cd ..
-mkdir cmit && cd cmit
-touch test3.txt
+```bash
+  kubectl exec -it emptydir -c frontend -- bash
+  cd /cache
+  touch test{1..3}.txt # create some files
+  ls
+  exit
+  kubectl exec -it emptydir -c sidecar -- sh
+  cd /tmp/log
+  ls # see all test files
+  echo "message from sidecar containers" > newfile.txt
+  exit
+  kubectl exec -it emptydir -c frontend -- bash
+  ls /cache
+  cat /cache/newfile.txt
+  exit
 ```
 
-- for restart the container delete healthcheck
+- Restart pod with delete healthcheck. Don't delete pod.
 
 ```bash
-kubectl exec empthdir -c frontend -- rm -rf healthcheck
+kubectl get pods -w # watch pod from another terminal before restart
+kubectl exec emptydir -c frontend -- rm -rf healthcheck
 ```
 
 - after restart the container, control the folders
 
-- control the folders in the sidecar container
 ```bash
-kubectl exec -it empthdir -c frontend -- sh
-cd /tmp/log
-ls
-
-show the files
+  # control the folders in the sidecar container
+  kubectl exec -it emptydir -c sidecar -- sh
+  cd /tmp/log
+  ls #show the files
+  exit
 ```
+- **Question**: If we created a deployment instead of a pod and deleted the pod, would we be able to see the old data in the new pod?
 
 ### Hostpath
 
-
-- Create a `cmit-pod-hosthpath.yaml` file that uses hosthpath volume using the following content.
-
-- Log into the `Minikube-node` node, create a `cache` directory
-
-```bash
-minikube ssh
-mkdir -p /cache
-exit
-```
+- Create a `pod-hosthpath.yaml` file that uses hosthpath volume using the following content.
+  In a hostPath volume type, the data is stored on the specified path on the node where the pod is running.
 
 ```yaml
 apiVersion: v1
@@ -123,7 +130,7 @@ metadata:
 spec:
   containers:
   - name: hostpathcontainer
-    image: ozgurozturknet/k8s:blue
+    image: sametustaoglu/volume:v1
     ports:
     - containerPort: 80
     livenessProbe:
@@ -133,274 +140,210 @@ spec:
       initialDelaySeconds: 5
       periodSeconds: 5
     volumeMounts:
-    # - name: directory-vol
-    #   mountPath: /dir1
-    - name: dircreate-vol
-      mountPath: /cache
-    # - name: file-vol
-    #   mountPath: /cache/config.json       
+    - name: firstvolume
+      mountPath: /cache    
   volumes:
-  # - name: directory-vol
-  #   hostPath:
-  #     path: /tmp
-  #     type: Directory
-  - name: dircreate-vol
+  - name: firstvolume
     hostPath:
-      path: /cache
+      path: /tmp/data
       type: DirectoryOrCreate
-  # - name: file-vol
-  #   hostPath:
-  #     path: /cache/config.json
-  #     type: FileOrCreate
 ```
 
-node üzerinde dizin oluşturulup deneme yapıalcak. pod restart-kontrol
 ```bash
-k exec -it hostpath -- bash
+  kubectl apply -f pod-hosthpath.yaml
+  kubectl get pod -o wide # See which node the pod is running on
+  minikube ssh --node <node-name>
+  cd /tmp/data
+  ls # see there is no file
+```
+
+- create some files in pods.
+
+```bash
+kubectl exec -it hostpath -- bash
 cd /cache
 ls
-
-touch test{1..3}.pic
-
+touch test{1..3}.txt
+ls
 exit
 ```
-
+- check that files are created from host
 ```bash
-minikube ssh
-cd /cache
-ls
+minikube ssh --node <node-name>
+cd /tmp/data
+ls # see new files come from pod
 exit
 ```
 - restart and running other node senario 
 ```bash
-minikube add node
-kubectl get node - o wide
 kubectl delete pod hostpath
 kubectl get po -o wide
-kubectl apply -f cmit-pod-hosthpath.yaml
+kubectl apply -f pod-hosthpath.yaml
 kubectl get po -o wide
+kubectl exec -it hostpath -- ls /cache # Verify that you can see old data in the new pod
 ```
 
-## Part 2 - Kubernetes Volume Persistence
+## Part 2 - Kubernetes Persistence Volumes
+
+- In this part, we'll create an external volume and use it inside Kubernetes. To simulate an external volume, we'll use Multipass. We'll create a VM with Multipass and set up an NFS server on it.
 
 ### on nfs-server
 
+- In this section, we will create a VM for NFS and configure it as an NFS server. We'll also allow write access from the 192.168.0.0/16 network block.
+
 ```bash
-multipass launch 20.04 --name nfs --cpus 2 --disk 20G --memory 2G 
+# Create a VM named NFS
+multipass launch 20.04 --name nfs --cpus 2 --disk 20G --memory 2G # this command takes some time
 multipass shell nfs
-
+# Configure the created VM as nfs-server
 sudo apt-get update
-sudo apt-get install nfs-kernel-server
-sudo mkdir -p /mnt/cmit
-sudo chown nobody:nogroup /mnt/cmit # ubuntu:ubuntu
-sudo chmod 777 /mnt/cmit
-
-sudo nano /etc/exports
-  /mnt/cmit <ip-of-minikube-node> (rw,sync,no_subtree_check,insecure,no_root_squash)    # ip.0/24
-
+sudo apt-get install nfs-kernel-server -y
+sudo mkdir -p /data
+sudo chown -R nobody:nogroup /data 
+sudo chmod 777 /data
+sudo vi /etc/exports
+  /data 192.168.0.0/16(rw,sync,no_subtree_check,insecure,no_root_squash)   
 sudo exportfs -a
-
 sudo systemctl restart nfs-kernel-server
 sudo systemctl status nfs-kernel-server
+sudo ufw disable
+exit
 ```
 
-- there is a problem on firewall can try "sudo ufw disable"
-
-- Get the documentation of `PersistentVolume` and its fields. Explain the volumes, types of volumes in Kubernetes and how it differs from the Docker volumes. [Volumes in Kubernetes](https://kubernetes.io/docs/concepts/storage/volumes/)
-
-```bash
-kubectl explain pv
-```
-
-- Log into the `nfs-server` node, create a `cmit` directory under home folder, also create an `index.html` file with `Welcome to Kubernetes persistence volume lesson` text and note down path of the `pv-data` folder.
-
-```bash
-multipass shell nfs
-cd /mnt/cmit
-echo "Welcome to Kubernetes persistence volume lesson" > index.html
-ls
-pwd
-/home/cmit
-```
-
-- Log into `minikube-CP` node and create a folder named volume-lessons.
-
-```bash
-mkdir volume-lessons && cd volume-lessons
-```
-
-- Create a `cmit-pv.yaml` file using the following content with the volume type of `hostPath` to build a `PersistentVolume` and explain fields.
+- Create a `persistentvolume.yaml` file using the following content. This volume will be created on the NFS server we set up earlier.
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: cmit-pv-vol
+  name: first-pv
   labels:
     type: local
 spec:
-  storageClassName: nfs
+  storageClassName: manual
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  # hostPath:
-  #   path: "/home/docker/pv-data"
   persistentVolumeReclaimPolicy: Delete
   nfs:
-    path: /mnt/cmit
-    server: 192.168.64.8
+    path: /data
+    server: <nfs-ip> # see ip with "multipass list" command
 ```
 
-- talk about persistentVolumeReclaimPolicy: delete, recycle, retain
+- talk about **persistentVolumeReclaimPolicy**: delete, recycle, retain
+  - **delete**: The PV is automatically deleted when the PVC is deleted, removing all associated data.
+  - **retain**: The PV retains its data even after the PVC is deleted, requiring manual intervention to reuse or clean up the volume.
+  - **recycle**: The PV is cleaned by deleting the files and made available for reuse. Note: This policy is deprecated.
 
-- Create the PersistentVolume `cmit-pv-vol`.
+- Create the PersistentVolume `first-pv`.
 
 ```bash
-kubectl apply -f cmit-pv.yaml
+kubectl apply -f persistentvolume.yaml
 ```
 
 - View information about the `PersistentVolume` and notice that the `PersistentVolume` has a `STATUS` of available which means it has not been bound yet to a `PersistentVolumeClaim`.
 
 ```bash
-kubectl get pv cmit-pv-vol
+kubectl get pv
 ```
 
-- Get the documentation of `PersistentVolumeClaim` and its fields.
-
-```bash
-kubectl explain pvc
-```
-
-- Create a `cmit-pv-claim.yaml` file using the following content to create a `PersistentVolumeClaim` and explain fields.
+- Create a `persistentvolumeclaim.yaml` file using the following content to create a `PersistentVolumeClaim` and explain fields.
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cmit-pv-claim
+  name: first-pvc
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  storageClassName: "nfs"
   selector:
     matchLabels:
       type: local
 ```
 
-- Create the PersistentVolumeClaim `cmit-pv-claim`.
+- Create the PersistentVolumeClaim `persistent-volume-claim`.
 
 ```bash
-kubectl apply -f cmit-pv-claim.yaml
+kubectl apply -f persistentvolumeclaim.yaml
 ```
 
-> After we create the PersistentVolumeClaim, the Kubernetes control plane looks for a PersistentVolume that satisfies the claim's requirements. If the control plane finds a suitable `PersistentVolume` with the same `StorageClass`, it binds the claim to the volume. Look for details at [Persistent Volumes and Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#introduction)
-
-- View information about the `PersistentVolumeClaim` and show that the `PersistentVolumeClaim` is bound to your PersistentVolume `cmit-pv-vol`.
+- View information about the `PersistentVolumeClaim` and show that the `PersistentVolumeClaim` is bound to your PersistentVolume `first-pv`.
 
 ```bash
-kubectl get pvc cmit-pv-claim
+kubectl get pv,pvc
 ```
-
 - View information about the `PersistentVolume` and show that the PersistentVolume `STATUS` changed from Available to `Bound`.
 
-```bash
-kubectl get pv cmit-pv-vol
-```
-
-- Create a `cmit-pod.yaml` file that uses your PersistentVolumeClaim as a volume using the following content.
+- Create a `persistent-pod.yaml` file that uses your PersistentVolumeClaim as a volume using the following content.
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: cmit-pod
+  name: pod-persistent
   labels:
-    app: cmit-web 
+    app: web 
 spec:
   volumes:
-    - name: cmit-pv-storage
+    - name: pv-storage
       persistentVolumeClaim:
-        claimName: cmit-pv-claim
+        claimName: first-pvc
   containers:
-    - name: cmit-pv-container
+    - name: pv-container
       image: nginx
       ports:
         - containerPort: 80
           name: "http-server"
       volumeMounts:
         - mountPath: "/usr/share/nginx/html"
-          name: cmit-pv-storage
+          name: pv-storage
 ```
 
-- Create the Pod `cmit-pod`.
+- Create the Pod `pod-persistent`.
 
 ```bash
-kubectl apply -f cmit-pod.yaml
+kubectl apply -f persistent-pod.yaml
 ```
 
 - Verify that the Pod is running.
 
 ```bash
-kubectl get pod cmit-pod
+kubectl get pod
 ```
 
-- Open a shell to the container running in your Pod.
+- Open a shell to the container running in your Pod. And Change index html from pod in /usr/share/nginx/html path.
 
 ```bash
-kubectl exec -it cmit-pod -- /bin/bash
-```
-
-- Verify that `nginx` is serving the `index.html` file from the `hostPath` volume.
-
-```bash
+kubectl exec -it pod-persistent -- /bin/bash
+curl http://localhost/
+cd /usr/share/nginx/html
+echo "Welcome to Kubernetes persistence volume lesson" > index.html
+cat index.html
 curl http://localhost/
 ```
 
-- Log into the `ControlPlane` node, change the `index.html`.
+- Check volume from NFS server
 
 ```bash
-minikube ssh
-cd pv-data
-echo "Kubernetes Rocks!!!!" > index.html
-```
-
-- Log into the `minikube-master` node, check if the change is in effect.
-
-```bash
-kubectl exec -it cmit-pod -- /bin/bash
-curl http://localhost/
-```
-
-- Expose the cmit-pod pod as a new Kubernetes service on master.
-
-```bash
-kubectl expose pod cmit-pod --port=80 --type=NodePort
-```
-
-- List the services.
-
-```bash
-kubectl get svc
-for minikube tunnel
-minikube service cmit-pod --url
-```
-- Check the browser (`http://127.0.0.1:TUNNEL_PORT`) that cmit-pod is running.
-
-```bash
-for down url 
-ctrl + c 
+  multipass shell nfs
+  cat /data/index.html
 ```
 
 ### test persistence senario
 
-- delete running cmit-pod then testing reach again the same volume
+- delete running pod-persistent then testing reach again the same volume
 
 ```bash
-kubectl delete po cmit-pod
+kubectl delete pod pod-persistent
+kubectl apply -f persistent-pod.yaml
+kubectl port-forward pods/pod-persistent 8888:80
+# go to localhost:8888 from browser
 ```
 
 ### cleaning
@@ -408,16 +351,23 @@ kubectl delete po cmit-pod
 - Delete the `Pod`, the `PersistentVolumeClaim` and the `PersistentVolume`.
 
 ```bash
-kubectl delete pod cmit-pod
-kubectl delete pvc cmit-pv-claim
-kubectl delete pv cmit-pv-vol
-or 
+kubectl delete pod pod-persistent
+kubectl delete pvc first-pvc
+kubectl delete pv first-pv
+#or 
 kubectl delete -f .
 ```
 
 ### Dinamic Volume
 
 - Nfs server setup is done before section
+
+```bash
+  multipass shell nfs
+  mkdir -p /data/dynamic
+  sudo chown -R nobody:nogroup /data 
+```
+
 
 ### on kubernetes setup
  
@@ -429,31 +379,32 @@ exit
 ```
 
 ```bash
-# imstal helm sudo snap install helm 
+# instal helm sudo snap install helm 
 
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 helm repo update
 
-#change nfs-server-ip
-helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner\
+# change nfs-server-ip
+kubectl create namespace nfs
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
     --set nfs.server=<nfs-server-ip> \
-    --set nfs.path=/mnt/cmit
+    --set nfs.path=/data/dynamic \
+    -n nfs
 
-#for control
+# for control
 - check the pod name nfs-subdir-external-provisioner up and running
-kubectl get po 
+kubectl get pod -n nfs
 - check the storageclass name nfs-client
-kubectl get sc
+kubectl get storageclass
 ```
 
-- Create a `cmit-pod-dinamic.yaml` file that uses nfs-client storageclass using the following content.
-
+- Create a persistent volume claim `dynamic-volume-pvc.yaml` file that uses nfs-client storageclass using the following content.
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-pvc
+  name: dynamic-volume-pvc
 spec:
   accessModes:
     - ReadWriteMany
@@ -461,13 +412,21 @@ spec:
   resources:
     requests:
       storage: 1Gi
+```
 
----
+- Verify that the dynamic volume has been created and that the dynamic-volume-pvc is in the Bound state.
 
+```bash
+  kubectl get pv,pvc
+```
+
+- Create a pod that uses the dynamic-volume-pvc. 
+
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nfs-test-pod
+  name: pod-dynamic-volume
 spec:
   containers:
   - name: app
@@ -484,9 +443,7 @@ spec:
 ```
 
 ```bash
-kubectl apply -f cmit-pod-dinamic.yaml
-
-kubectl get pvc
+kubectl apply -f pod-dynamic-volume.yaml
 kubectl get po
 ```
 
@@ -494,18 +451,22 @@ kubectl get po
 
 ```bash
 multipass shell nfs
-cd /mntcmit
+cd /data/dynamic
 ls
+cd <dynamic-volume-folder-name>
+cat date.txt
 ```
 
-- create new file and check in the pod path
+- create new file in nfs server and check in the pod path
 
 ```bash
 touch second.txt
+```
 
-# cminikube-controlnode
+- check new file from pod
 
-kubectl exec -it nfs-test-pod -- sh
+```bash
+kubectl exec -it pod-dynamic-volume -- sh
 cd /mnt/data
 ls
 ```

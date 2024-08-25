@@ -28,7 +28,7 @@ metadata:
 spec:
   containers:
   - name: main-app
-      image: nginx
+    image: nginx
 ```
 - run basic-pod
 ```bash
