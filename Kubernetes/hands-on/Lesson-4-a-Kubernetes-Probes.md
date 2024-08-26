@@ -54,7 +54,7 @@ spec:
 
 - The `initialDelaySeconds` field tells the kubelet that it should `wait 10 seconds before performing the first probe`. 
 
-- To perform a probe, the kubelet sends an `HTTP GET request` to the server that is running in the container and listening on port 80. If the handler for the server's `/healthz` path returns a success code, the kubelet considers the container to be alive and healthy. If the handler returns a failure code, the kubelet kills the container and restarts it.
+- To perform a probe, the kubelet sends an `HTTP GET request` to the server that is running in the container and listening on port 80. If the handler for the server's `/health` path returns a success code, the kubelet considers the container to be alive and healthy. If the handler returns a failure code, the kubelet kills the container and restarts it.
 
 - Any code `greater than or equal to 200 and less than 400` indicates `success`. Any other code indicates `failure`.
 

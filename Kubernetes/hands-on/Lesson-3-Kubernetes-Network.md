@@ -1,3 +1,5 @@
+# Kubernetes Network Hands-On
+
 # ClusterIP
 
 ClusterIP Services assign an IP address that can be used to reach the Service from within your cluster. This type doesn’t expose the Service externally.
@@ -11,7 +13,7 @@ ClusterIP Services assign an IP address that can be used to reach the Service fr
   cd Kubernetes/examples/kubernetes-network/service
 ```
 
-First, copy the following Deployment manifest and save it as app.yaml in your working directory:
+First, copy the following Deployment manifest and save it as `app.yaml` in your working directory:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -48,7 +50,7 @@ kubectl apply -f app.yaml
 
 Now your NGINX deployment is running, but you don’t have a way to access it. Although you could directly connect to the Pods, this doesn’t load balance and will lead to errors if one of the Pods becomes unhealthy or is replaced. Creating a Service allows you to route traffic between the replicas so you can reliably access the Deployment.
 
-- The following manifest defines a simple ClusterIP service. Save it as clusterip.yaml:
+- The following manifest defines a simple ClusterIP service. Save it as `clusterip.yaml`:
 
 ```yaml
 apiVersion: v1
@@ -101,13 +103,13 @@ nslookup nginx-clusterip.default # see service ip address
 ```
 #### Understanding Label and Selector Better
 
-- Create a new pod with same label but different name. Copy the following Pod manifest and save it as custom-pod.yaml in your working directory:
+- Create a new pod with same label but different name. Copy the following Pod manifest and save it as `custom-pod.yaml` in your working directory:
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: uvey-ngin
+  name: uvey-nginx
   labels:
     app: nginx #same label
 spec:
@@ -144,7 +146,7 @@ spec:
       nodePort: 32000
 ```
 
-Save the manifest as nodeport.yaml and use kubectl to apply it.
+Save the manifest as `nodeport.yaml` and use kubectl to apply it.
 
 ```bash
 kubectl apply -f nodeport.yaml
@@ -190,7 +192,7 @@ spec:
 
 Adding this Service to your cluster will attempt to use the configured load balancer integration to provision a new infrastructure component. If you created your cluster from a managed cloud service, this should result in a load balancer resource being added to your cloud account.
 
-Save the manifest as loadbalancer.yaml, then apply it with kubectl
+Save the manifest as `loadbalancer.yaml`, then apply it with kubectl
 
 ```bash
 kubectl apply -f loadbalancer.yaml
@@ -217,7 +219,7 @@ Let’s check the newly created namespace ingress-nginx
 kubectl get pods -n ingress-nginx
 ```
 
-- Create web-service.yaml file and copy below code to inside
+- Create `web-service.yaml` file and copy below code to inside
 
 ```bash
   cd ..
@@ -266,7 +268,7 @@ spec:
 kubectl apply -f web-service.yaml
 ```
 
-- Create inventory-service.yaml file and copy below code to inside
+- Create `inventory-service.yaml` file and copy below code to inside
 
 ```yaml
 apiVersion: apps/v1
@@ -311,7 +313,7 @@ Now let’s deploy and expose a hello world application
 kubectl apply -f inventory-service.yaml
 ```
 
-- Create ingress.yaml file and copy below code.
+- Create `ingress.yaml` file and copy below code.
 
 
 ```yaml
