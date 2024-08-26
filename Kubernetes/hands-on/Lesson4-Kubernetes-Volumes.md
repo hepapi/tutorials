@@ -41,6 +41,7 @@ kubectl get nodes
 ```
 
 - In the pod manifest below, an emptyDir volume is used. The emptyDir volume is for sharing data between containers within the same pod.
+
   The /cache directory in the frontend pod and the /tmp/log directory in the sidecar pod will share the same volume.
 
 ```yaml
