@@ -94,19 +94,19 @@ metadata:
   name: configmap-env-pod
 spec:
   containers:
-    - name: configmap-env-container
-        image: nginx
-        env:
-        - name: ENVIRONMENT
-            valueFrom:
-            configMapKeyRef:
-                name: app-config
-                key: ENV
-        - name: LOGGING
-            valueFrom:
-            configMapKeyRef:
-                name: imperative-configmap
-                key: LOGGING
+  - name: configmap-env-container
+    image: nginx
+    env:
+    - name: ENVIRONMENT
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: ENV
+    - name: LOGGING
+      valueFrom:
+        configMapKeyRef:
+          name: imperative-configmap
+          key: LOGGING
 ```
 
 - Apply `pod-with-configmap.yaml` file
@@ -127,8 +127,9 @@ spec:
 ### Create Secret from files
 
 ```bash
-    echo -e "PASSWORD=passwd123" > secret.txt
-    kubectl create secret generic app-secret-file --from-file=secret.txt
+    echo -n "passwd123" > PASSWORD
+    kubectl create secret generic app-secret-file --from-file=PASSWORD # You will get the same result when you create it as below.
+    # kubectl create secret generic app-secret-file --from-literal=PASSWORD=passwd123 
 ```
 
 ### Create Secret with Declerative Format
@@ -145,10 +146,12 @@ data:
   SECRET_ENV_VAR: c2VjcmV0LXZhbHVl # "secret-value" encoded in base64
 ```
 
-- apply the `configmap.yaml` file
+- apply the `secret.yaml` file
 
 ```bash
-  kubectl apply -f configmap.yaml
+  kubectl apply -f secret.yaml
+  kubectl describe secret app-secret
+  kubectl get secret app-secret -o yaml
 ```
 
 ### Create a Pod Using the Secret
@@ -180,7 +183,7 @@ spec:
 - Apply the `pod-with-secret.yaml` file
 
 ```bash
-  kubeclt apply -f pod-with-secret.yaml
+  kubectl apply -f pod-with-secret.yaml
 ```
 
 - Check the environment variables:
@@ -213,7 +216,7 @@ spec:
 - Apply the `pod-with-all-secret-cm.yaml` file
 
 ```bash
-  kubeclt apply -f pod-with-all-secret-cm.yaml
+  kubectl apply -f pod-with-all-secret-cm.yaml
 ```
 
 - Check the environment variables:
@@ -239,18 +242,21 @@ metadata:
 data:
   NGINX_ENV: "production"
   nginx.conf: |
-    server {
-      listen 80;
-      server_name localhost;
-
-      location / {
-        root /usr/share/nginx/html;
-        index index.html;
-      }
-
-      error_page 500 502 503 504 /50x.html;
-      location = /50x.html {
-        root /usr/share/nginx/html;
+    events {
+      worker_connections 1024;
+    }
+    http {
+      server {
+          listen 80;
+          server_name localhost;
+          location / {
+              root /usr/share/nginx/html;
+              index index.html;
+          }
+          error_page 500 502 503 504 590 /50x.html;
+          location = /50x.html {
+              root /usr/share/nginx/html;
+          }
       }
     }
 ```
@@ -344,14 +350,15 @@ spec:
 
 ```bash
   kubectl apply -f private-registry-pod.yaml
+  kubeclt get pod # Check if the pod is running. 
+  kubectl describe po private-registry-pod # see "pull access denied" message from events
 ```
-
-- Check if the pod is running. 
 
 - Create a docker-registry secret
 
 ```bash
   kubectl create secret docker-registry docker-registry-secret --docker-username=<username> --docker-password=<password>  --docker-server=<server>
+  kubectl get secret # check secret types
 ```
 
 #### Use a Docker Registry Secret While Pulling Image From Private Image Registry
@@ -374,7 +381,9 @@ spec:
 - Apply the file `private-registry-pod.yaml`
 
 ```bash
+  kubectl delete -f private-registry-pod.yaml
   kubectl apply -f private-registry-pod.yaml
+  kubectl get pod # check pod is running
 ```
 
 - Check if the pod is running. 
@@ -397,5 +406,8 @@ data:
 - Create a TLS secret with imperative way
 
 ```bash
+  kubectl create secret --help
+  kubectl create secret tls --help
   kubectl create secret tls tls-secret --cert=path/to/tls.crt --key=path/to/tls.key
 ```
+creating example tls secret  [https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/resources/add-tls-secrets]
