@@ -2,11 +2,16 @@
 
 ### Install Metric Server
 
+```bash
+  mkdir -p Kubernetes/examples/kubernetes-security/hpa
+  cd Kubernetes/examples/kubernetes-security/hpa
+```
+
 The Kubernetes Metrics Server is a scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines. It's a lightweight aggregator of resource usage data, specifically CPU and memory, from all nodes in the Kubernetes cluster. The Metrics Server is typically used to provide the metrics required by the Horizontal Pod Autoscaler (HPA), Vertical Pod Autoscaler (VPA), and the Kubernetes dashboard.
 
 - Create component.yaml and copy below code
 
-```bash
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -229,13 +234,74 @@ kubectl top pods -n kube-system
 ### Create a Deployment
 Let’s deploy the application as part of our Kubernetes cluster, maintaining a minimum of 1 replica and a maximum of 10 replicas. Below is the configuration, which you can save as “deployment.yml”.
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          requests:
+            cpu: "25m"
+          limits:
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: nginx 
+```
+
+
 ```bash
-kubectl apply -f deploy.yaml
+kubectl apply -f deployment.yml
 ```
 
 ### Install the Horizontal Pod Autoscaler
 
 We now have the sample application as part of our deployment, and the service is accessible on port 80. To scale our resources, we will use HPA to scale up when traffic increases and scale down the resources when traffic decreases.
+
+- create hpa.yaml file and copy below code
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hpa-deploy
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 
+```
 
 ```bash
 kubectl apply -f hpa.yaml
@@ -252,3 +318,9 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 ```
 
 Once you triggered the load test, use the below command, which will show the status of the HPA every 30 seconds
+
+```bash
+kubectl get hpa -w
+```
+
+By issuing the command that increases CPU usage, the HPA (Horizontal Pod Autoscaler) will scale the number of pods based on the incoming load. As the load decreases, the HPA will reduce the number of pods back down to the minimum replica count.

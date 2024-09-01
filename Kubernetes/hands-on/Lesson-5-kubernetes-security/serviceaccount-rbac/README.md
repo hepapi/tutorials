@@ -2,9 +2,28 @@
 - A `service account` provides an identity for `processes` that run in a Pod, and maps to a `ServiceAccount` object. 
 - Kubernetes by default creates a service account in each namespace of a cluster and call it a default service account. These default service accounts are mounted to every pod launched.
 
-- Create serviceaccount.yaml and copy below code
+- Create minikube cluster
 
 ```bash
+minikube start
+```
+
+- Create folder for serviceaccount hands-on
+
+```bash
+  mkdir -p Kubernetes/examples/kubernetes-security/serviceaccount
+  cd Kubernetes/examples/kubernetes-security/serviceaccount
+```
+- First check all serviceaccount object in your cluster
+
+```bash
+kubectl get serviceaccount -A
+kubectl get sa -A
+```
+
+- Create serviceaccount.yaml file and copy below code
+
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -14,9 +33,8 @@ metadata:
 ```
 
 ```bash
-kubectl get serviceaccount
-kubectl get sa -A
 kubectl apply -f serviceaccount.yaml
+kubectl get sa
 ```
 ## RBAC
 - Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
@@ -47,7 +65,7 @@ kubectl apply -f serviceaccount.yaml
 
 - Create role.yaml file and copy beloy code
 
-```bash
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -74,9 +92,9 @@ kubectl get role
 
 - For example: you can use a ClusterRole to allow a particular user to run kubectl get pods --all-namespaces
 
-- Create clusterrole.yaml and copy below code.
+- Create clusterrole.yaml file and copy below code.
 
-```bash
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -84,7 +102,6 @@ metadata:
   name: secret-reader
 rules:
 - apiGroups: [""]
-  #
   # at the HTTP level, the name of the resource for accessing Secret
   # objects is "secrets"
   resources: ["secrets"]
@@ -106,9 +123,9 @@ kubectl get clusterrole
 
 - Before the create the `rolebinding`, create a pod and see that it doesn't have any authority to reach kubernetes cluster.
 
-- Create non-sa-pod.yaml and copy below code
+- Create non-sa-pod.yaml file and copy below code
 
-```bash
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -122,28 +139,45 @@ spec:
 
 ```bash
 kubectl apply -f non-sa-pod.yaml
-kubectl exec -it kubectl-pod -- sh
-/ # kubectl get po
+kubectl get po
+kubectl describe po kubectl-pod-non-sa | grep Service
+kubectl exec -it kubectl-pod-non-sa -- sh
+kubectl get po
 Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:default:default" cannot list resource "pods" in API group "" in the namespace "default"
 / # exit
 ```
 
-- Create the rolebinding.
+- Create the rolebinding.yaml file and copy below code
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: my-serviceaccount # "name" is case sensitive
+  namespace: default
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: pod-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+```
 
 ```bash
 kubectl apply -f rolebinding.yaml
 kubectl get rolebinding
 ```
 
-- go to /var/run/secrets/kubernetes.io/serviceaccount path in pod and show token
-
 ### ClusterRoleBinding example
 
 - To grant permissions across a whole cluster, you can use a ClusterRoleBinding. The following ClusterRoleBinding allows any user in the group "manager" to read secrets in any namespace. Create a yaml file and name it as `clusterrolebinding.yaml`.
 
-- Create clusterrolebinding.yaml copy below code
+- Create clusterrolebinding.yaml file copy below code
 
-```bash
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 # This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
 kind: ClusterRoleBinding
@@ -160,12 +194,33 @@ roleRef:
 ```
 
 ```bash
-kubectl apply -f clusterolebinding.yaml
+kubectl apply -f clusterrolebinding.yaml
 kubectl get clusterrolebinding
 ```
 
+- To check serviceaccount,role-clusterrole and rolebinding-clusterrolebinding create kubectl-pod.yaml file and copy below code
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubectl-pod-with-sa
+spec:
+  serviceAccountName: my-serviceaccount
+  containers:
+  - name: kubectl-container
+    image: ersinsari/kubectl
+    command: ["bash", "-c", "while true; do sleep 3600; done"]
+```
+
 ```bash
-kubectl exec -it kubectl-pod -- sh
+kubectl apply -f kubectl-pod.yaml
+kubectl get po
+kubectl exec -it kubectl-pod-with-sa -- sh
+kubectl get pod
+kubectl get pod -A
 kubectl get secret
 kubectl get secret -A
 ```
+
+We were able to view only the resources in the default namespace because we granted pod permissions to the service account using a Role and RoleBinding. However, we could view all secrets across the entire cluster because we granted secret permissions using a ClusterRole and ClusterRoleBinding.

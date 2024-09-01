@@ -12,7 +12,7 @@ In Kubernetes, resources and limits are mechanisms used to manage the amount of 
 - Resource Limits define the maximum amount of CPU and memory that a container can use. If a container tries to use more than its limit, it may be throttled (for CPU) or killed (for memory) by Kubernetes.
 
 Here’s an example of a Kubernetes pod specification that defines resource requests and limits:
-```bash
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:

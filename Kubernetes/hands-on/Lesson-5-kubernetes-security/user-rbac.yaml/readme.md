@@ -1,6 +1,19 @@
 ## Create a User in a Kubernetes Cluster and Grant Access
 We’ll illustrate the steps required to create a user, generate necessary certificates, and configure access using a kubeconfig file within a Kubernetes cluster.
 
+- Create minikube cluster
+
+```bash
+minikube start
+```
+
+- Create folder for serviceaccount hands-on
+
+```bash
+  mkdir -p Kubernetes/examples/kubernetes-security/user
+  cd Kubernetes/examples/kubernetes-security/user
+```
+
 ### Generating a Key Pair and Certificate Signing Request (CSR)
 
 - Generate a key pair and a Certificate Signing Request (CSR) using OpenSSL:
@@ -13,7 +26,7 @@ openssl req -new -key user.key -out user.csr -subj "/CN=user/O=group"
 - create a CSR YAML file named “user-csr.yaml” to submit to Kubernetes and copy below code
 - Encode the CSR file in base64 and prepare it for the Kubernetes YAML.
 
-```bash
+```yaml
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
@@ -69,7 +82,7 @@ Create a Role and RoleBinding in the test namespace.
 
 - Create role.yaml and copy below code
 
-```bash
+```yaml
 # role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -83,7 +96,7 @@ rules:
 ```
 - Create rolebindings.yaml and copy below code
 
-```bash
+```yaml
 # rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
