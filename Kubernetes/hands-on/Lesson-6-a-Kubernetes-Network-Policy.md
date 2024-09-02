@@ -2,27 +2,10 @@
 ## Network Policy
 - If you want to control traffic flow at the IP address or port level (OSI layer 3 or 4), then you might consider using Kubernetes NetworkPolicies for particular applications in your cluster.
 
-- The entities that a Pod can communicate with are identified through a combination of the following 3 identifiers:
-
-  1. Other pods that are allowed (exception: a pod cannot block access to itself)
-  2. Namespaces that are allowed
-  3. IP blocks (exception: traffic to and from the node where a Pod is running is always allowed, regardless of the IP address of the Pod or the node)
-
-- When defining a pod or namespace based NetworkPolicy, you use a selector to specify what traffic is allowed to and from the Pod(s) that match the selector.
-
-- Meanwhile, when IP based NetworkPolicies are created, we define policies based on IP blocks (CIDR ranges).
-
-- Create minikube cluster with calico CNI
+- Create minikube cluster # flannel CNI does not support network policy
 
 ```bash
 minikube start --network-plugin=cni --cni=calico
-```
-
-- Create folder for network-policy hands-on
-
-```bash
-  mkdir -p Kubernetes/examples/kubernetes-security/network-policy
-  cd Kubernetes/examples/kubernetes-security/network-policy
 ```
 
 - Create 3 namespace.
@@ -33,7 +16,13 @@ kubectl create ns nginx-ns
 kubectl create ns alpine-ns
 ```
 
-- Create a `busybox.yaml` for busybox deployment under `busybox-ns` namespace.
+```bash
+  mkdir -p Kubernetes/examples/netpol
+  cd Kubernetes/examples/netpol
+  touch busybox.yaml
+```
+
+- Create a `busybox.yaml` file for busybox deployment under `busybox-ns` namespace.
 
 ```yaml
 apiVersion: apps/v1
@@ -128,13 +117,11 @@ spec:
 kubectl apply -f nginx.yaml
 ```
 
-- Check pod and service in nginx-ns
-
 ```bash
 kubectl get po,svc -n nginx-ns
 ```
 
-- Create a `alpine.yaml` for alpine deployment under `alpine-ns` namespace.
+- Create a `alpine.yaml` file for alpine deployment under `alpine-ns` namespace.
 
 ```yaml
 apiVersion: apps/v1
@@ -190,9 +177,11 @@ kubectl get po,svc -n alpine-ns
 - Try to connect the pods for testing.
 
 ```bash
-kubectl get po -A -o wide
+kubectl get pod -A -o wide
 kubectl exec -it -n busybox-ns <busybox-deployment-pod> -- sh
-ping nginx-pod and alpine from busybox
+#ping nginx-pod and alpine-pod from busybox-pod
+ping <nginx-pod-ip> # see what you can reach
+ping <alpine-pod>
 ```
 
 By default, since all pods within a Kubernetes cluster can communicate with each other, you should be able to see a successful ping result.
@@ -222,18 +211,27 @@ This is the Pod the Network Policy’s Ingress and Egress rules will apply to. B
 kubectl apply -f network-policy.yaml
 ```
 
-- Try to connect the pods for testing.
-
 ```bash
-kubectl get po -A -o wide
+kubectl get pod -A -o wide
 kubectl exec -it -n busybox-ns <busybox-deployment-pod> -- sh
-ping nginx-pod and alpine from busybox
+#ping nginx-pod and alpine-pod from busybox-pod
+ping <nginx-pod-ip> # see what you can not reach
+ping <alpine-pod> # see what you can reach
 ```
 
 The ping to the Alpine pod should be successful, while the ping to the Nginx pod should fail because we have completely blocked both ingress and egress traffic to the Nginx pod using a network policy.
 
 ### Adding an Allow Rule
-Update your networkpolicy below code
+
+- to get busybox-ns namespace label run below command
+
+```bash
+kubectl get ns busybox-ns -o yaml
+kubectl get ns busybox-ns -o jsonpath='{.metadata.labels}' 
+
+```
+
+- Update your networkpolicy below code
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -261,20 +259,20 @@ spec:
 ```
 
 ```bash
-kubectl apply -f network-policy.yaml
+kubectl apply -f network-policy.yaml # see configured message
 ```
 
 - Try to connect the pods for testing.
 
 ```bash
 kubectl get po -A -o wide
-kubectl exec -it -n busybox-ns <busybox-deployment-pod> -- sh
-ping <nginx-deployment-pod>
-kubectl exec -it -n alpine-ns <alpine-deplyment-pod> -- sh
-ping <nginx-deployment-pod>
-ping <busybox-deploymentpod>
+kubectl exec -it -n busybox-ns busybox-deployment-<XXXXXXX> -- sh
+ping <nginx-pod-ip> # see what you can not reach
+kubectl exec -it -n alpine-ns alpine-deployment-<XXXXXXX> -- sh
+ping <busybox-pod-ip> # see what you can reach
+ping <nginx-pod-ip> # see what you can not reach
 ```
-- ping nginx-pod and alpine and from busybox.Your busybox pod can access to nginx pod but alpine-pod can not access nginx because we give permisssion only busybox pod ingress and egress.
+- ping nginx-pod and from alpine and busybox.Your busybox pod can access to nginx pod but alpine-pod can not access nginx because we give permisssion only busybox pod ingress and egress.
 
 ### Understanding Kubernetes Network Policy Ingress/Egress selectors
 
@@ -303,10 +301,12 @@ ipBlock selectors are used to allow traffic to or from specific IP address CIDR 
 ```yaml
 ipBlock:
   cidr: 10.0.0.0/24
+  except:
+    - 192.168.1.0/24
 ```
 #### Combining selectors
 
-You can use multiple selectors to create complex conditions in your policies. The following policy selects all the Pods that are either labeled demo-api or belong to a namespace labeled app: demo
+You can use multiple selectors to create complex conditions in your policies. The following policy selects all the Pods that are either labeled demo-api or belong to a namespace labeled app: demo:
 
 ```yaml
 ingress:
@@ -318,10 +318,6 @@ ingress:
           matchLabels:
             app: demo-api
 ```
-
-
-This policy only targets Pods that are both labeled app: demo-api and in a namespace labeled app: demo.
-
 ```yaml
 ingress:
   - from:
@@ -332,3 +328,15 @@ ingress:
           matchLabels:
             app: demo-api
 ```
+This policy only targets Pods that are both labeled app: demo-api and in a namespace labeled app: demo.
+
+### affects all pods in a namespace
+
+To say that it affects all pods in a namespace, not just one pod, leave the pod selector blank.
+
+```yaml
+podSelector: {}
+```
+ 
+
+

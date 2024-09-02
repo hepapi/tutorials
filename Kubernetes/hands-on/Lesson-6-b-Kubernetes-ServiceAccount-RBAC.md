@@ -1,3 +1,7 @@
+# RBAC
+- Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
+- RBAC authorization uses the rbac.authorization.k8s.io API group to drive authorization decisions, allowing you to dynamically configure policies through the Kubernetes API.
+
 ## ServiceAccount
 - A `service account` provides an identity for `processes` that run in a Pod, and maps to a `ServiceAccount` object. 
 - Kubernetes by default creates a service account in each namespace of a cluster and call it a default service account. These default service accounts are mounted to every pod launched.
@@ -36,16 +40,9 @@ metadata:
 kubectl apply -f serviceaccount.yaml
 kubectl get sa
 ```
-## RBAC
-- Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
 
-- RBAC authorization uses the rbac.authorization.k8s.io API group to drive authorization decisions, allowing you to dynamically configure policies through the Kubernetes API.
 
-### API objects
-
-- The RBAC API declares four kinds of Kubernetes object: Role, ClusterRole, RoleBinding and ClusterRoleBinding
-
-### Role and ClusterRole
+## Role and ClusterRole
 
 - An RBAC Role or ClusterRole contains rules that represent a set of permissions. Permissions are purely additive (there are no "deny" rules).
 
@@ -113,7 +110,7 @@ kubectl apply -f clusterrole.yaml
 kubectl get clusterrole
 ```
 
-### RoleBinding and ClusterRoleBinding
+## RoleBinding and ClusterRoleBinding
 
 - A role binding grants the permissions defined in a role to a user or set of users. It holds a list of subjects (users, groups, or service accounts), and a reference to the role being granted. A RoleBinding grants permissions within a specific namespace whereas a ClusterRoleBinding grants that access cluster-wide.
 
