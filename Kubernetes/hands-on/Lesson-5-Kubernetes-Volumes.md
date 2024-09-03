@@ -1,4 +1,4 @@
-# Hands-on Kubernetes Lesson4 : Kubernetes Volumes 
+# Hands-on Kubernetes Lesson 5 : Kubernetes Volumes 
 
 Purpose of this hands-on training is to give participants the knowledge of Kubernetes Volumes.
 
@@ -18,12 +18,12 @@ Purpose of this hands-on training is to give participants the knowledge of Kuber
 
 ## Kubernetes Volume Types
 
-- Part 1 - Kubernetes Volume Ephemeral (Emptydir - Hostpath)
+- Part 1 - Kubernetes Volume Ephemeral (Emptydir )
 
-- Part 2 - Kubernetes Volume Persistence (Static - Dinamic volume)
+- Part 2 - Kubernetes Volume Persistence (HostPath - Static - Dinamic volume)
 
 
-## Part 1 - Kubernetes Volume Ephemeral (Emptydir-Hostpath)
+## Part 1 - Kubernetes Volume Ephemeral (Emptydir)
 
 - Check if Kubernetes is running and nodes are ready.
 
@@ -88,7 +88,13 @@ kubectl apply -f pod-emptydir.yaml
   cd /cache
   touch test{1..3}.txt # create some files
   ls
+  cd ..
+  ls
+  mkdir deneme && cd deneme
+  touch test4.pic
+  ls
   exit
+
   kubectl exec -it emptydir -c sidecar -- sh
   cd /tmp/log
   ls # see all test files
@@ -117,6 +123,8 @@ kubectl exec emptydir -c frontend -- rm -rf healthcheck
   exit
 ```
 - **Question**: If we created a deployment instead of a pod and deleted the pod, would we be able to see the old data in the new pod?
+
+## Part 2 - Kubernetes Persistence Volumes
 
 ### Hostpath
 
@@ -175,16 +183,27 @@ cd /tmp/data
 ls # see new files come from pod
 exit
 ```
+
 - restart and running other node senario 
 ```bash
 kubectl delete pod hostpath
 kubectl get po -o wide
 kubectl apply -f pod-hosthpath.yaml
+kubectl exec -it hostpath -- bash
+cd /cache
+ls  # see old files come from node path
+exit
+
+kubectl delete pod hostpath
+minikube node add
+
+kubectl get node
+kubectl apply -f pod-hosthpath.yaml
 kubectl get po -o wide
 kubectl exec -it hostpath -- ls /cache # Verify that you can see old data in the new pod
-```
 
-## Part 2 - Kubernetes Persistence Volumes
+minikube node delete minikube-m02
+```
 
 - In this part, we'll create an external volume and use it inside Kubernetes. To simulate an external volume, we'll use Multipass. We'll create a VM with Multipass and set up an NFS server on it.
 
@@ -345,6 +364,7 @@ kubectl delete pod pod-persistent
 kubectl apply -f persistent-pod.yaml
 kubectl port-forward pods/pod-persistent 8888:80
 # go to localhost:8888 from browser
+# change in nfs server path index.html and check again browser 
 ```
 
 ### cleaning
@@ -415,13 +435,19 @@ spec:
       storage: 1Gi
 ```
 
+- Create the PersistentVolumeClaim `dynamic-volume-pvc.yaml`.
+
+```bash
+  kubectl apply -f dynamic-volume-pvc.yaml
+```
+
 - Verify that the dynamic volume has been created and that the dynamic-volume-pvc is in the Bound state.
 
 ```bash
   kubectl get pv,pvc
 ```
 
-- Create a pod that uses the dynamic-volume-pvc. 
+- Create a pod "pod-dynamic-volume.yaml" file that uses the dynamic-volume-pvc. 
 
 ```yaml
 apiVersion: v1
@@ -440,7 +466,7 @@ spec:
   volumes:
   - name: nfs
     persistentVolumeClaim:
-      claimName: nfs-pvc
+      claimName: dynamic-volume-pvc
 ```
 
 ```bash
@@ -455,7 +481,7 @@ multipass shell nfs
 cd /data/dynamic
 ls
 cd <dynamic-volume-folder-name>
-cat date.txt
+cat date.txt or tail -f date.txt
 ```
 
 - create new file in nfs server and check in the pod path
@@ -470,4 +496,16 @@ touch second.txt
 kubectl exec -it pod-dynamic-volume -- sh
 cd /mnt/data
 ls
+# check restart pod then verify files
+kubectl delete pod pod-dynamic-volume
+kubectl apply -f pod-dynamic-volume
+
+kubectl exec -it pod-dynamic-volume -- sh
+cd /mnt/data
+ls
+```
+- cleaning
+
+```bash
+kubectl delete -f .
 ```

@@ -5,6 +5,7 @@
 - Create minikube cluster # flannel CNI does not support network policy
 
 ```bash
+minikube delete
 minikube start --network-plugin=cni --cni=calico
 ```
 
@@ -240,8 +241,8 @@ metadata:
   name: network-policy
   namespace: nginx-ns
 spec:
-  podSelector:
-    matchLabels:
+  podSelector: 
+    matchLabels: 
       app: nginx
   policyTypes:
     - Ingress
@@ -306,7 +307,7 @@ ipBlock:
 ```
 #### Combining selectors
 
-You can use multiple selectors to create complex conditions in your policies. The following policy selects all the Pods that are either labeled demo-api or belong to a namespace labeled app: demo:
+selects the Pods 'or' expression
 
 ```yaml
 ingress:
@@ -328,15 +329,30 @@ ingress:
           matchLabels:
             app: demo-api
 ```
-This policy only targets Pods that are both labeled app: demo-api and in a namespace labeled app: demo.
+Select to Pods 'and' expression
 
 ### affects all pods in a namespace
 
-To say that it affects all pods in a namespace, not just one pod, leave the pod selector blank.
+To affect all pods in a namespace, not just one pod
 
 ```yaml
-podSelector: {}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-policy
+  namespace: nginx-ns
+spec:
+  podSelector: {}
 ```
  
-
-
+- To deny spesific namespace/pod/IP
+ 
+ ```yaml
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["taurus-hot"]
+```
