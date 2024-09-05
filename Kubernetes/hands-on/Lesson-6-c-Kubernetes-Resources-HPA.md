@@ -110,7 +110,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50 
+        averageUtilization: 30 
 ```
 
 ```bash
