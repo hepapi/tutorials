@@ -354,5 +354,5 @@ spec:
         matchExpressions:
         - key: kubernetes.io/metadata.name
           operator: NotIn
-          values: ["taurus-hot"]
+          values: ["demo"]
 ```
