@@ -18,7 +18,7 @@ Purpose of this hands-on training is to give participants the knowledge of Kuber
 
 ## Kubernetes Volume Types
 
-- Part 1 - Kubernetes Volume Ephemeral (Emptydir )
+- Part 1 - Kubernetes Volume Ephemeral (Emptydir)
 
 - Part 2 - Kubernetes Volume Persistence (HostPath - Static - Dinamic volume)
 
@@ -28,6 +28,8 @@ Purpose of this hands-on training is to give participants the knowledge of Kuber
 - Check if Kubernetes is running and nodes are ready.
 
 ```bash
+minikube delete
+minikube start # with single node 
 kubectl get nodes
 ```
   
@@ -161,7 +163,7 @@ spec:
 ```bash
   kubectl apply -f pod-hosthpath.yaml
   kubectl get pod -o wide # See which node the pod is running on
-  minikube ssh --node <node-name>
+  minikube ssh --node <node-name> # run this command in side terminal
   cd /tmp/data
   ls # see there is no file
 ```
@@ -203,6 +205,7 @@ kubectl get po -o wide
 kubectl exec -it hostpath -- ls /cache # Verify that you can see old data in the new pod
 
 minikube node delete minikube-m02
+kubectl get node
 ```
 
 - In this part, we'll create an external volume and use it inside Kubernetes. To simulate an external volume, we'll use Multipass. We'll create a VM with Multipass and set up an NFS server on it.
@@ -498,7 +501,7 @@ cd /mnt/data
 ls
 # check restart pod then verify files
 kubectl delete pod pod-dynamic-volume
-kubectl apply -f pod-dynamic-volume
+kubectl apply -f pod-dynamic-volume.yaml
 
 kubectl exec -it pod-dynamic-volume -- sh
 cd /mnt/data

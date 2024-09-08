@@ -234,21 +234,24 @@ minikube start
 
 ### Generating a Key Pair and Certificate Signing Request (CSR)
 
-- Generate a key pair and a Certificate Signing Request (CSR) using OpenSSL:
+- The following operations will be performed by the new user who wants to log in to the cluster.
+    - Generate a key pair and a Certificate Signing Request (CSR) using OpenSSL:
 
-```bash
-openssl genrsa -out user.key 2048
-openssl req -new -key user.key -out user.csr -subj "/CN=user/O=group"
-```
+    ```bash
+    openssl genrsa -out elalem-user.key 2048
+    openssl req -new -key elalem-user.key -out elalem-user.csr -subj "/CN=user/O=group"
+    ```
+    - send `elalem-user.csr` file to cluster admin for creating certificate. 
 
-- create a CSR YAML file named “user-csr.yaml” to submit to Kubernetes and copy below code
-- Encode the CSR file in base64 and prepare it for the Kubernetes YAML.
+- The following operations will be performed by the cluster admin.
+    - create a CSR YAML file named `elalem-user-csr.yaml` to submit to Kubernetes and copy below code
+    - Encode the CSR file in base64 and prepare it for the Kubernetes YAML.
 
 ```yaml
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
-  name: user-csr
+  name: elalem-user-csr
 spec:
   request: <base64_encoded_csr>
   signerName: kubernetes.io/kube-apiserver-client
@@ -256,33 +259,63 @@ spec:
   - client auth
 ```
 
-```bash
-cat user.csr | base64 | tr -d '\n'
-```
--Replace <base64_encoded_csr> with the base64 output from the previous step.
+  ```bash
+  cat elalem-user.csr | base64 | tr -d '\n'
+  ```
 
-- Apply the CSR YAML file to Kubernetes
+  - Replace <base64_encoded_csr> with the base64 output from the previous step.
 
-```bash
-kubectl apply -f user-csr.yaml
-```
+  - Apply the CSR YAML file to Kubernetes
 
-- Approve the CSR and retrieve the approved certificate:
+  ```bash
+  kubectl apply -f elalem-user-csr.yaml
+  ```
 
-```bash
-kubectl get csr
-kubectl certificate approve user-csr
-kubectl get csr
-#get user certificate
-kubectl get csr user-csr -o jsonpath='{.status.certificate}' | base64 --decode > user.crt
-```
+  - Approve the CSR and retrieve the approved certificate:
+
+  ```bash
+  kubectl get csr # see a csr in pending state
+  kubectl certificate approve elalem-user-csr
+  kubectl get csr # see a csr in approves state
+  # get user certificate
+  kubectl get csr elalem-user-csr -o jsonpath='{.status.certificate}' | base64 --decode > elalem-user.crt
+  ```
 ### Configure a kubeconfig File
 
 To access the Kubernetes cluster, it’s essential to generate a configuration file tailored for the user. This file needs to encompass critical information, including the Kubernetes API access specifics, the Cluster CA certificate, as well as the user’s certificate and context name. Initially, we’ll generate the kubeconfig file specifically for the user.
 
 ```bash
-kubectl config set-credentials user --client-certificate=user.crt --client-key=user.key
-kubectl config set-context elalem --cluster=minikube --namespace=test --user=user
+kubectl config set-credentials elalem-user --client-certificate=elalem-user.crt --client-key=elalem-user.key
+kubectl config set-context elalem --cluster=minikube --namespace=test --user=elalem-user
+```
+
+- As a second option create new kubeconfig file `elalem-kubeconfig.yaml`
+```yaml
+apiVersion: v1
+clusters:
+- name: minikube
+  cluster:
+    certificate-authority: /Users/sametustaoglu/.minikube/ca.crt # CHANGE 
+    server: https://127.0.0.1:53865
+
+contexts:
+- name: elalem
+  context:
+    cluster: minikube
+    namespace: test
+    user: elalem-user
+
+current-context: elalem
+
+users:
+- name: elalem-user
+  user:
+    client-certificate: /Users/sametustaoglu/Desktop/egitim_genel/Kubernetes/examples/kubernetes-security/user/elalem-user.crt # CHANGE
+    client-key: /Users/sametustaoglu/Desktop/egitim_genel/Kubernetes/examples/kubernetes-security/user/elalem-user.key # CHANGE
+```
+
+```bash
+export KUBECONFIG=./elalem-kubeconfig.yaml
 ```
 
 ### Test new user
@@ -304,10 +337,9 @@ kubectl get po
 
 Create a Role and RoleBinding in the test namespace.
 
-- Create role.yaml and copy below code
+- Create `role.yaml` and copy below code
 
 ```yaml
-# role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -318,10 +350,9 @@ rules:
   resources: ["pods"]
   verbs: ["get", "watch", "list"]
 ```
-- Create rolebindings.yaml and copy below code
+- Create `rolebindings.yaml` and copy below code
 
 ```yaml
-# rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
