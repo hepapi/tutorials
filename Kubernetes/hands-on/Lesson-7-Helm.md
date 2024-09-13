@@ -6,12 +6,87 @@ Helm is a package manager for Kubernetes that helps you manage Kubernetes applic
 
 Helm uses a templating engine to allow users to create reusable and customizable Kubernetes manifests.
 
+## Why Helm?
+
+When working with Kubernetes, it's common to create multiple applications that share similar configurations. However, writing the same Kubernetes manifests for each application can quickly become cumbersome and error-prone.
+
+### Simple Kubernetes App (Manual Manifests)
+
+Following is a yaml Kubernetes Manifest list to create a very basic deployment on Kubernetes:
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myApplication
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myApplication
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myApplication
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mychart
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mychart
+        app.kubernetes.io/instance: release-name
+    spec:
+      serviceAccountName: myApplication
+      containers:
+        - name: mychart
+          securityContext: {}
+          image: "nginx:1.16.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+```
+
+### The Drawbacks of Manual YAML Management
+
+- **Repetitiveness**: Writing similar manifests for each application can lead to a lot of repetitive code.
+- **Maintenance Overhead**: If you need to update a configuration (like changing the container image), you have to remember to update it in multiple places.
+- **Complexity in Scaling**: As you scale your applications or add new ones, managing all these manifests manually becomes increasingly complex.
+
+### How Helm Simplifies Management
+
+Helm is a package manager for Kubernetes that helps address these challenges by allowing you to define, install, and manage Kubernetes applications using a templated approach.
+
+- **Templating**: Helm uses templates to define Kubernetes resources. You can parameterize values such as the name, image, and replica count, making it easy to customize deployments without duplicating code.
+- **Release Management**: Helm tracks the version of your deployments, making it easy to roll back to previous versions if needed.
+- **Dependency Management**: Helm allows you to define dependencies between different charts (packages of Kubernetes resources).
+- **Easier Upgrades and Rollbacks**: With Helm, if something goes wrong, you can roll back to a previous version with minimal hassle.
+- **Community Charts**: Helm has a vast ecosystem of community-contributed charts for common applications, and you can leverage existing charts to deploy popular software quickly and easily, rather than starting from scratch.
+
+
+---
+
 ## Installing Helm
 
 Follow the [documentation to install helm](https://helm.sh/docs/intro/install/) on your system.
 
 ```bash
-helm --help
+# ensure helm is installed
+helm
 ```
 
 ## Helm Chart Requirements
@@ -86,6 +161,8 @@ spec:
             - containerPort: {{ .Values.service.port }}
 ```
 
+### Helm Templates
+
 #### Control Statements
 
 ##### if Statements
@@ -108,26 +185,26 @@ data:
 The range statement is used to iterate over a list or a map.
 
 ```yaml
-myStringList:
-    {{- range .Values.myList }}
-    - {{ . | quote }}
-    {{- end }}    
+# values.yaml
+myEnvironmentVars:
+  - key: "envVar1"
+    value: "value1"
+  - key: "envVar2"
+    value: "value2"
+  - key: "envVar3"
+    value: "value3"
 ```
 
-##### with Statements
-
-The with statement allows you to **reduce the scope of the context**.
-
 ```yaml
-{{- with .Values.service }}
+# configmap.yaml
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
-  name: {{ .name }}
-spec:
-  ports:
-    - port: {{ .port }}
-{{- end }}
+  name: example-config
+data:
+  {{- range .Values.myEnvironmentVars }}
+  {{ .key }}: {{ .value | quote }}
+  {{- end }}
 ```
 
 #### Functions
@@ -137,59 +214,65 @@ spec:
 Helm provides several built-in functions for string manipulation, type conversion, and more. Here are a few common functions:
 
 - `quote`: Wraps a string in quotes.
-    ```yaml
-    image: {{ .Values.image.repository | quote }}
-    ```
+  ```yaml
+  image: { { .Values.image.repository | quote } }
+  ```
 - `toYaml`: Converts an object to YAML format.
-    ```yaml
-    data: {{ .Values.config | toYaml | nindent 4 }}
-    ```
+  ```yaml
+  data: { { .Values.config | toYaml | nindent 4 } }
+  ```
 - `default`: Returns a default value if the provided value is empty.
-    ```yaml
-    replicas: {{ .Values.replicaCount | default 1 }}
-    ```
+  ```yaml
+  replicas: { { .Values.replicaCount | default 1 } }
+  ```
 
-##### Custom Functions
+## Artifact Hub
 
-You can also define custom functions in your templates using the `define` keyword.
+<https://artifacthub.io/>
 
+Artifact Hub is used for discovering, sharing, and managing Helm charts and other Kubernetes-related artifacts.
 
+By using Artifact Hub, developers can easily find high-quality, community-contributed charts that meet their specific needs, saving time and effort in the deployment process.
 
+### Real World Usage
 
-```yaml
-{{- define "my.custom.function" -}}
-Hello, {{ . }}!
-{{- end -}}
+Let's use the **kube-prometheus-stack** for our example and explore the helm commands.
 
-{{ include "my.custom.function" "World" }}
-```
+<https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Artifact Hub Helm Repos
-
-https://artifacthub.io/
+#### Helm Repositories (`helm repo`)
 
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update bitnami
+# helm repo add [NAME] [URL]
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
+# helm repo update [REPO1 [REPO2 ...]]
+helm repo update prometheus-community
 
-helm search repo bitnami
+# helm search repo [keyword]
+helm search repo prometheus-community
+```
 
-helm install my-release bitnami/<chart>
+#### Getting helm default Values (`helm show`)
+
+```bash
+# helm show readme [CHART]
+helm show readme prometheus-community/kube-prometheus-stack
+```
+
+```bash
+# helm show readme [CHART]
+helm show values prometheus-community/kube-prometheus-stack > kube-prometheus-stack-values.yaml
+
+cat kube-prometheus-stack-values.yaml
+```
+
+#### Installing helm apps (`helm install`)
+
+```bash
+# helm install [NAME] [CHART]
+helm install kube-prometheus-stack \
+    -f kube-prometheus-stack-values.yaml \
+    --set fullnameOverride=my-kube-prometheus-stack \
+    prometheus-community/kube-prometheus-stack
 ```
