@@ -276,3 +276,29 @@ helm install kube-prometheus-stack \
     --set fullnameOverride=my-kube-prometheus-stack \
     prometheus-community/kube-prometheus-stack
 ```
+
+#### After install (`helm list`, `helm status`)
+
+
+```bash
+# helm status [NAME]
+helm status -n default kube-prometheus-stack
+```
+
+```bash
+# helm list
+helm list -n default
+
+helm list -A  # all namespaces
+```
+
+
+#### Using the Dashboard (`helm dashboard`)
+
+
+```bash
+# helm dashboard 
+helm dashboard
+```
+
+Go to <http://localhost:8080> and you can use all of the above commands as an UI.
