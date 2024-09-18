@@ -12,54 +12,115 @@ When working with Kubernetes, it's common to create multiple applications that s
 
 ### Simple Kubernetes App (Manual Manifests)
 
-Following is a yaml Kubernetes Manifest list to create a very basic deployment on Kubernetes:
+```bash
+  minikube start
+  minikube addons enable ingress
+```
+
+```bash
+  mkdir -p Kubernetes/examples/manifests
+  cd Kubernetes/examples/manifests
+  touch serviceaccount.yaml deployment.yaml service.yaml ingress.yaml configmap.yaml
+```
+
+Here are example YAML manifests for a basic deployment on Kubernetes:
+
+- servisaccount.yaml
 
 ```yaml
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: myApplication
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: myApplication
-spec:
-  type: ClusterIP
-  ports:
-    - port: 80
-      targetPort: http
-      protocol: TCP
-      name: http
----
+  name: nginx-serviceaccount
+```
+
+- deployment.yaml
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myApplication
+  name: nginx-deployment
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app.kubernetes.io/name: mychart
-      app.kubernetes.io/instance: release-name
+      app: nginx
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: mychart
-        app.kubernetes.io/instance: release-name
+        app: nginx
     spec:
-      serviceAccountName: myApplication
+      serviceAccountName: nginx-serviceaccount
       containers:
-        - name: mychart
-          securityContext: {}
-          image: "nginx:1.16.0"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
+      - name: nginx
+        image: nginx:1.19.2
+        ports:
+        - containerPort: 80
+        env:
+        - name: NGINX_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: nginx-config
+              key: port
 ```
+
+- service.yaml
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+```
+
+- ingress.yaml
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: nginx.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+```
+
+- configmap.yaml
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  port: "80"
+```
+
+```bash
+  kubectl apply -f .
+```
+
+- Without Helm, each Kubernetes resource must be manually defined and applied. This can be error-prone and time-consuming for large applications.
 
 ### The Drawbacks of Manual YAML Management
 
@@ -77,7 +138,6 @@ Helm is a package manager for Kubernetes that helps address these challenges by 
 - **Easier Upgrades and Rollbacks**: With Helm, if something goes wrong, you can roll back to a previous version with minimal hassle.
 - **Community Charts**: Helm has a vast ecosystem of community-contributed charts for common applications, and you can leverage existing charts to deploy popular software quickly and easily, rather than starting from scratch.
 
-
 ---
 
 ## Installing Helm
@@ -86,7 +146,7 @@ Follow the [documentation to install helm](https://helm.sh/docs/intro/install/) 
 
 ```bash
 # ensure helm is installed
-helm
+helm version
 ```
 
 ## Helm Chart Requirements
@@ -102,8 +162,10 @@ A valid helm chart requires following files:
 We can use a prepared template using `helm create <chart-name>` command.
 
 ```bash
-helm create mychart
+cd ..
+mkdir helm && cd helm
 
+helm create mychart
 cd mychart/
 ```
 
@@ -161,50 +223,180 @@ spec:
             - containerPort: {{ .Values.service.port }}
 ```
 
+## Deploying Our First Helm Chart
+
+```bash
+  cd ..
+  touch values.yaml
+```
+- Create a custom `values.yaml` file:
+
+```yaml
+# information for serviceaccount
+serviceAccount:
+  create: true  
+  name: nginx-serviceaccount
+
+# information for deployment
+replicaCount: 3
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.19.2"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+nodeSelector: {}
+
+# information for service
+service:
+  type: ClusterIP
+  port: 80
+
+# information for ingress
+ingress:
+  enabled: true  
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: nginx.local
+      paths:
+        - path: /
+          pathType: Prefix
+```
+
+- Install the Helm chart:
+
+```bash
+helm install nginx-app ./mychart -f values.yaml
+# Verify all resource
+kubectl get all
+kubectl get sa
+kubectl get ingress
+```
+
+- Add `nginx.local` to /etc/hosts file. (127.0.0.1 nginx.local)
+
+### Upgrading Helm Releases
+
+- Change values.yaml and add "fullnameOverride: nginx"
+
+```bash
+helm upgrade --install nginx-app ./mychart -f values.yaml # Check version of release
+kubectl get all # See changes of deployment/pod/service names
+```
+
+- Change values.yaml and update "tag: latest"
+
+```bash
+helm upgrade --install nginx-app ./mychart -f values.yaml
+kubectl describe deployments.apps nginx # Verify changes of image tag
+```
+
+### Rolling Back a Helm Release
+
+```bash
+  helm ls # see all helm release in default namespace
+  helm history nginx-app # see all version of nginx-app
+  helm rollback nginx-app <version>
+  kubectl describe deployments.apps nginx | grep -i image:
+```
+
+- Note: Every rollback is a seperate release
+
 ### Helm Templates
 
 #### Control Statements
 
 ##### if Statements
 
-The if statement allows conditional rendering in templates.
+- The if statement allows conditional rendering in templates.
+
+- Create a `confimap.yaml` file in templates folder.
 
 ```yaml
-{{- if .Values.enabled }}
+{{- if .Values.configmap.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-config
+  name: {{ .Release.Name }}-configmap
 data:
-  key: "value"
+{{ .Values.configmap.data | toYaml | indent 2 }}
 {{- end }}
+```
+
+- Add the configmap section in `values.yaml`:
+
+```yaml
+# information for configmap
+configmap:
+  enabled: true
+  data:
+    port: "80"
+    env: "dev"
+```
+
+- Upgrade the Helm release and check the configmap:
+
+```bash
+helm upgrade --install nginx-app ./mychart -f values.yaml
+kubectl describe cm nginx-app-configmap # Verify env variable in configmap
 ```
 
 ##### range Statements
 
-The range statement is used to iterate over a list or a map.
+The `range` statement is used to iterate over a list or a map.
+
+- Modify the `configmap.yaml` file in template folder
 
 ```yaml
-# values.yaml
-myEnvironmentVars:
-  - key: "envVar1"
-    value: "value1"
-  - key: "envVar2"
-    value: "value2"
-  - key: "envVar3"
-    value: "value3"
-```
-
-```yaml
-# configmap.yaml
+{{- if .Values.configmap.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: example-config
+  name: {{ .Release.Name }}-configmap
 data:
-  {{- range .Values.myEnvironmentVars }}
-  {{ .key }}: {{ .value | quote }}
-  {{- end }}
+{{- range $key, $value := .Values.configmap.data }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+{{- end }}
+```
+
+- Add new variables in `values.yaml`:
+
+```yaml
+configmap:
+  enabled: true
+  data:
+    port: "80"
+    env: "dev"
+    loglevel: "info"
+```
+
+- Update `deployment.yaml` in the `templates/` folder:
+
+```yaml
+          {{- if .Values.configmap.enabled }}     
+          envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-configmap
+          {{- end }}
+```
+
+- Upgrade the Helm release and verify the ConfigMap and environment variables in the pod:
+
+```bash
+helm upgrade --install nginx-app ./mychart -f values.yaml
+kubectl describe cm nginx-app-configmap # Verify environment variables in the ConfigMap
+kubectl get pods
+kubectl exec nginx-<xxxx>-<xxxx> -- printenv # Verify environment variables in the pod
 ```
 
 #### Functions
@@ -225,14 +417,67 @@ Helm provides several built-in functions for string manipulation, type conversio
   ```yaml
   replicas: { { .Values.replicaCount | default 1 } }
   ```
+You can find more functions in the [Helm function list documentation](https://helm.sh/docs/chart_template_guide/function_list/)
+
+## Using own Helm repository
+
+### Creating Helm Repository with Nexus
+
+1. Go to [artifacthub.io](artifacthub.io) and search for the nexus3 chart. Select the [nexus3 chart](https://artifacthub.io/packages/helm/stevehipwell/nexus3)
+
+2. Customize the values.yaml for Nexus. Create a `nexus-values.yaml` file:
+
+```yaml
+ingress:
+enabled: true
+ingressClassName: "nginx"
+hosts:
+  - nexus.local
+```
+
+3. Deploy the Helm chart:
+
+```bash
+  helm repo add stevehipwell https://stevehipwell.github.io/helm-charts/
+  helm install my-nexus3 stevehipwell/nexus3 --version 5.0.0 --values nexus-values.yaml
+```
+
+4. Verify nexus pod is ready.
+
+```bash
+  kubectl get pod
+  kubectl get ingress
+```
+
+5. Add nexus.local to your /etc/hosts file (127.0.0.1 nexus.local), then visit nexus.local in your browser. Change the default password and create a Helm hosted repository named helm-repo.
+
+### Create a Helm Chart and Push it to the Nexus Helm Repository
+
+1. Package the Helm chart:
+```bash
+  helm package mychart ./mychart  # Generates a .tgz file
+```
+
+2. Push the packaged chart to Nexus:
+```bash
+  curl -u <username>:<password> http://nexus.local/repository/helm-repo/ --upload-file mychart-0.1.0.tgz -v
+```
+
+### Deploy Own Helm Chart From Helm Repository
+
+1. Add the Nexus Helm repository:
+```bash
+  helm install my-release helm-repo/mychart -f values.yaml
+```
+
+2. Install your Helm chart from the Nexus repository:
+```bash
+  helm install my-release helm-repo/mychart -f values.yaml
+```
 
 ## Artifact Hub
 
-<https://artifacthub.io/>
-
-Artifact Hub is used for discovering, sharing, and managing Helm charts and other Kubernetes-related artifacts.
-
-By using Artifact Hub, developers can easily find high-quality, community-contributed charts that meet their specific needs, saving time and effort in the deployment process.
+[Artifact Hub](https://artifacthub.io/) is a platform for discovering, sharing, and managing Helm charts and other Kubernetes-related artifacts. It saves time by allowing developers to easily find high-quality, community-contributed charts that meet their deployment needs.
 
 ### Real World Usage
 
@@ -245,11 +490,19 @@ Let's use the **kube-prometheus-stack** for our example and explore the helm com
 ```bash
 # helm repo add [NAME] [URL]
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
 
+- To view Helm chart files, go to ~/Library/Caches/helm/repository (For Macbook)
+  <https://helm.sh/docs/helm/helm/>
+
+```bash
 # helm repo update [REPO1 [REPO2 ...]]
+# This command updates the local cache of chart information.
 helm repo update prometheus-community
 
+
 # helm search repo [keyword]
+# This searches the local cache of charts in the added repositories for the kube-prometheus-stack
 helm search repo prometheus-community
 ```
 
@@ -267,7 +520,41 @@ helm show values prometheus-community/kube-prometheus-stack > kube-prometheus-st
 cat kube-prometheus-stack-values.yaml
 ```
 
-#### Installing helm apps (`helm install`)
+#### Installing a Helm Chart  (`helm install`)
+
+- Edit the `kube-prometheus-stack-values.yaml`. Delete all lines and add below lines.
+
+```yaml
+grafana:
+  adminPassword: admin-password
+  enabled: true
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    enabled: true
+    hosts:
+    - monitoring.local
+    path: /
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    enabled: true
+    size: 1Gi
+    type: pvc
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+```
+
+Install the chart using the custom values file:
 
 ```bash
 # helm install [NAME] [CHART]
@@ -279,8 +566,9 @@ helm install kube-prometheus-stack \
 
 #### After install (`helm list`, `helm status`)
 
-
 ```bash
+minikube tunnel 
+# go to monitoring.local and login with admin-password
 # helm status [NAME]
 helm status -n default kube-prometheus-stack
 ```
@@ -292,13 +580,19 @@ helm list -n default
 helm list -A  # all namespaces
 ```
 
+- Delete a release 
 
+```bash
+helm delete/uninstall <release-name>
+```
 #### Using the Dashboard (`helm dashboard`)
 
 
 ```bash
 # helm dashboard 
+helm plugin install https://github.com/komodorio/helm-dashboard.git 
+helm plugin update dashboard
 helm dashboard
 ```
 
-Go to <http://localhost:8080> and you can use all of the above commands as an UI.
+Visit <http://localhost:8080> to use a web-based UI for managing Helm releases.
