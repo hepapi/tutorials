@@ -246,10 +246,10 @@ image:
   tag: "1.19.2"
 
 resources:
-  limits:
+  requests:
     cpu: 100m
     memory: 128Mi
-  requests:
+  limits:
     cpu: 200m
     memory: 256Mi
 
@@ -280,6 +280,7 @@ helm install nginx-app ./mychart -f values.yaml
 kubectl get all
 kubectl get sa
 kubectl get ingress
+minikube tunnel
 ```
 
 - Add `nginx.local` to /etc/hosts file. (127.0.0.1 nginx.local)
@@ -396,6 +397,7 @@ configmap:
 helm upgrade --install nginx-app ./mychart -f values.yaml
 kubectl describe cm nginx-app-configmap # Verify environment variables in the ConfigMap
 kubectl get pods
+kubectl rollout restart deployment nginx-app-mychart
 kubectl exec nginx-<xxxx>-<xxxx> -- printenv # Verify environment variables in the pod
 ```
 
@@ -409,6 +411,7 @@ Helm provides several built-in functions for string manipulation, type conversio
   ```yaml
   image: { { .Values.image.repository | quote } }
   ```
+  
 - `toYaml`: Converts an object to YAML format.
   ```yaml
   data: { { .Values.config | toYaml | nindent 4 } }
@@ -429,9 +432,9 @@ You can find more functions in the [Helm function list documentation](https://he
 
 ```yaml
 ingress:
-enabled: true
-ingressClassName: "nginx"
-hosts:
+  enabled: true
+  ingressClassName: "nginx"
+  hosts:
   - nexus.local
 ```
 
@@ -451,11 +454,19 @@ hosts:
 
 5. Add nexus.local to your /etc/hosts file (127.0.0.1 nexus.local), then visit nexus.local in your browser. Change the default password and create a Helm hosted repository named helm-repo.
 
+6. Nexus username is admin and get initial password "cat /nexus-data/admin.password" in nexus pod.
+
+7. Change password set admin.
+
+8. Create a hosted helm repo(helm-repo)
+
+
 ### Create a Helm Chart and Push it to the Nexus Helm Repository
 
 1. Package the Helm chart:
 ```bash
   helm package mychart ./mychart  # Generates a .tgz file
+  ls -l
 ```
 
 2. Push the packaged chart to Nexus:
@@ -467,12 +478,13 @@ hosts:
 
 1. Add the Nexus Helm repository:
 ```bash
-  helm install my-release helm-repo/mychart -f values.yaml
+   helm repo add helm-repo http://nexus.local/repository/helm-repo --username admin --password admin
 ```
 
 2. Install your Helm chart from the Nexus repository:
 ```bash
-  helm install my-release helm-repo/mychart -f values.yaml
+  helm delete nginx-app # remove previous helm release
+  helm install nginx helm-repo/mychart -f values.yaml
 ```
 
 ## Artifact Hub
@@ -572,6 +584,10 @@ minikube tunnel
 # helm status [NAME]
 helm status -n default kube-prometheus-stack
 ```
+
+- Add `monitoring.local` to /etc/hosts file. (127.0.0.1 monitoring.local)
+
+- Visit monitoring.local
 
 ```bash
 # helm list
