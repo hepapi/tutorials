@@ -401,7 +401,6 @@ azurerm_virtual_network.vnet
 
 ```bash
 terraform apply -auto-approve
-
 ```
 
 ## `terraform graph` command.
