@@ -1,4 +1,4 @@
-# Terraform Datasources RemoteBackend Provisioners
+# Terraform Datasources RemoteBackend Provisioners Hands-On
 
 In this session, we'll explore resource dependencies, datasources and terraform import, version constraints, remote backends and terraform provisioners.
 
