@@ -1,5 +1,9 @@
 # Hands-on 4: Building a Serverless Architecture
 
+NOTE: Complete this session in `ap-northeast-1`, namely `Tokyo`. Because `S3 links` in Part-4 
+are available only in that region. If you decide to complete this session in another Region, you
+need to upload `.zip` files manually in related parts. You can ask for help to your instructor.
+
 OVERVIEW
 
 AWS solutions architects increasingly adopt event-driven architectures to decouple distributed applications. 
@@ -462,7 +466,7 @@ S3-link: s3://hepapi-aws-session-files/Session4-Serverless/CreateThumbnail.zip
 
 Choose 'Save'
 
-Examine the 'lambda_function.py' code. It is performing the following steps:
+Examine the 'CreateThumbnail.py' code. It is performing the following steps:
 
 1. Receives an event, which contains the name of the incoming object (Bucket, Key)
 2. Downloads the image to local storage
@@ -471,7 +475,7 @@ Examine the 'lambda_function.py' code. It is performing the following steps:
 
 - In the Runtime settings section, choose Edit. 
 
--> For Handler, enter 'lambda_function.handler'. 
+-> For Handler, enter 'CreateThumbnail.handler'. 
 
 Choose 'Save'.
 
@@ -515,7 +519,7 @@ Caution: Make sure to choose Python 3.9 under Other supported runtime. If you ch
 supported, the code fails as it is configured specifically for Python 3.9.
 
 - Choose Create function. At the top of the page there is a message like, Successfully created the function 
-CreateThumbnail. You can now change its code and configuration. To invoke your function with a test event, choose “Test”.
+CreateMobileImage. You can now change its code and configuration. To invoke your function with a test event, choose “Test”.
 
 ### Task 5.4: Configure the CreateMobileImage Lambda function to add an SQS trigger and upload the Python deployment package
 
@@ -548,7 +552,7 @@ S3-link: s3://hepapi-aws-session-files/Session4-Serverless/CreateMobileImage.zip
 
 Choose 'Save'
 
-Examine the 'lambda_function.py' code. It is performing the following steps:
+Examine the 'CreateMobileImage.py' code. It is performing the following steps:
 
 1. Receives an event, which contains the name of the incoming object (Bucket, Key)
 2. Downloads the image to local storage
@@ -557,7 +561,7 @@ Examine the 'lambda_function.py' code. It is performing the following steps:
 
 - In the Runtime settings section, choose Edit. 
 
--> For Handler, enter 'lambda_function.handler'. 
+-> For Handler, enter 'CreateMobileImage.handler'. 
 
 Choose 'Save'.
 
