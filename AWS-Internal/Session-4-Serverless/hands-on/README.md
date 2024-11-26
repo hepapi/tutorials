@@ -1,7 +1,7 @@
 # Hands-on 4: Building a Serverless Architecture
 
-NOTE: Complete this session in `ap-northeast-1`, namely `Tokyo`. Because `S3 links` in Part-4 
-are available only in that region. If you decide to complete this session in another Region, you
+NOTE: Complete this session in `ap-northeast-1`, namely `Tokyo`. Because `S3 links` in are available 
+only in that region. If you decide to complete this session in another Region, you
 need to upload `.zip` files manually in related parts. You can ask for help to your instructor.
 
 OVERVIEW
