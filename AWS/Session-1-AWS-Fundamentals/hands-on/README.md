@@ -19,55 +19,6 @@ because the resources would be created under one account, namely `Management Acc
 Example: If the resource name is `aws-training-billing-alarm`, which is a CloudWatch alarm name; 
 make it `aws-training-billing-alarm-john` so that you now that you created this resource.
 
-## Part 0: Before starting ...
-
-### Setting up a CloudWatch alarm
-
-- Go to `CloudWatch` from AWS Management Console.
-
-- From menu on the left, choose `All alarms`. Then, choose `Create alarm`.
-
-```text
-Select metric -> Billing -> Total Estimated Charge -> (Check) USD
-```
-
-- Click `Select metric` and continue ...
-
-```text
-Metric name: aws-training-billing-alarm
-Currency: USD
-Statistic: Maximum
-Period: 6 hour
-Threshold type: Static
-Whenever alarm is: Greater
-than: 10 USD
-Leave the rest as default.
-```
-
-- Click `Next` and continue ...
-
-```text
-Alarm state trigger: In alarm
-Send a notification to the following SNS Topic: Create new topic
-Create a new topic: aws-training-billing-sns-topic
-Email endpoints that will receive the notification: <Your mail address>
-(Click) Create Topic
-Leave the rest as default.
-```
-
-- Click `Next` and continue ...
-
-```text
-Alarm name: aws-training-billing-alarm
-Alarm description - optional: aws-training-billing-alarm
-```
-
-- Click `Next` and continue ...
-
-- Click `Create alarm` and finish this part.
-
-- Check your mail box for AWS Notification - Subscription Confirmation.
-
 ## Part 1: AWS Management Console
 
 ### Introduction to the console and navigation
