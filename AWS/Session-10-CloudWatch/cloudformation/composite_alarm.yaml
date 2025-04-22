@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation Stack for EC2 Auto Scaling Group with dynamic VPC and Subnet selection
+
+Parameters:
+  UserIdentifier:
+    Type: String
+    Description: A unique identifier for the user (e.g., username or user ID)
+    Default: necip
+
+  LatestAmiId:
+    Description: The latest Amazon Linux 2 AMI
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select the VPC where the resources will be created
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select the Subnets for the Auto Scaling Group
+
+Resources:
+  MyEC2SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: !Sub "Security group for ${UserIdentifier}"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  LaunchTemplate:
+    Type: 'AWS::EC2::LaunchTemplate'
+    Properties:
+      LaunchTemplateName: !Sub "LaunchTemplate-${UserIdentifier}"
+      LaunchTemplateData:
+        InstanceType: t2.micro
+        SecurityGroupIds:
+          - !GetAtt MyEC2SecurityGroup.GroupId
+        ImageId: !Ref LatestAmiId
+
+  AutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      AutoScalingGroupName: !Sub "MyAutoScalingGroup-${UserIdentifier}"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: 1
+      MaxSize: 5
+      DesiredCapacity: 1
+      VPCZoneIdentifier: !Ref SubnetIds
+      MetricsCollection:
+        - Granularity: 1Minute
+
+  ScaleUpPolicy:
+    Type: 'AWS::AutoScaling::ScalingPolicy'
+    Properties:
+      AutoScalingGroupName:
+        Ref: AutoScalingGroup
+      AdjustmentType: ChangeInCapacity
+      ScalingAdjustment: '1'
+      Cooldown: '300'
+
+  HighCpuAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: !Sub "HighCPUUsage-${UserIdentifier}"
+      AlarmDescription: Alarm when CPU exceeds 40 percent
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '1'
+      Threshold: '40'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: AutoScalingGroup
+      AlarmActions:
+        - Ref: ScaleUpPolicy
+
+  HighASGSizeAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: !Sub "HighASGSize-${UserIdentifier}"
+      AlarmDescription: Alarm when ASG size exceeds 3
+      Namespace: AWS/AutoScaling
+      MetricName: GroupTotalInstances
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '1'
+      Threshold: '3'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: AutoScalingGroup
+
+
+  VeryHighCpuAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: !Sub "VeryHighCPUUsage-${UserIdentifier}"
+      AlarmDescription: Alarm when CPU exceeds 75 percent
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '1'
+      Threshold: '75'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: AutoScalingGroup
+      AlarmActions:
+        - Ref: ScaleUpPolicy
+
+Outputs:
+  AutoScalingGroupName:
+    Description: The name of the Auto Scaling Group
+    Value: !Ref AutoScalingGroup
+  LaunchTemplateName:
+    Description: The name of the Launch Template
+    Value: !Ref LaunchTemplate
+  SecurityGroupId:
+    Description: The ID of the Security Group
+    Value: !GetAtt MyEC2SecurityGroup.GroupId
