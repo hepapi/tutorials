@@ -232,7 +232,7 @@ aws s3 ls s3://test-bucket-for-session1-xxxxx
 
 - In this section, you will learn how to manage EC2 instances using AWS CLI. This includes listing current instances, launching a new instance (without key pair), checking its state, and terminating it afterward.
 
-#### Step 1.1: List existing EC2 instances
+#### Step 1.1: List Existing EC2 Instances
 
 ```bash
 aws ec2 describe-instances
@@ -248,7 +248,7 @@ aws ec2 describe-instances \
 ```
 - This command provides a cleaner view, showing only the following: Instance ID, Current state (running, stopped, etc.), Instance type (e.g., t2.micro), Public IP address (if any), Name tag (if assigned)
 
-#### Step 2: Launch a new EC2 instance
+#### Step 2: Launch a New EC2 Instance
 
 - We will launch an EC2 instance just to verify that it successfully boots up.
 
@@ -263,7 +263,7 @@ aws ec2 run-instances \
 
 **Not**: The AMI ID used here (ami-05ffe3c48a9991133) is specific to the N. Virginia (us-east-1) region. If you are working in a different region, make sure to replace it with the correct AMI ID for that region.
 
-#### Step 3: Inspect the instance
+#### Step 3: Inspect the Instance
 
 - After the instance is launched, you can check its status and public IP using:
 
@@ -274,7 +274,7 @@ aws ec2 describe-instances \
   --output table
 ```
 
-#### Step 4:  Terminate the instance
+#### Step 4:  Terminate the Instance
 
 - First, retrieve the instance ID:
 
@@ -292,7 +292,7 @@ aws ec2 terminate-instances --instance-ids <InstanceId>
 ```
 - Replace <InstanceId> with the value you got from the previous command.
 
-#### Step 5: Confirm instance termination
+#### Step 5: Confirm Instance Termination
 
 - Run the following to confirm the instance was terminated:
 
