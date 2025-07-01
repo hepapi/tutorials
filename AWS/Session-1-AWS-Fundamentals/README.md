@@ -227,3 +227,80 @@ aws s3 ls s3://test-bucket-for-session1-xxxxx
 - Notice the uploaded object in the newly created bucket in the output list.
 
 - Don't forget to destroy the resources you created.
+
+### EC2 Instance Management via AWS CLI
+
+- In this section, you will learn how to manage EC2 instances using AWS CLI. This includes listing current instances, launching a new instance (without key pair), checking its state, and terminating it afterward.
+
+#### Step 1.1: List existing EC2 instances
+
+```bash
+aws ec2 describe-instances
+```
+- This command prints all metadata related to your EC2 instances in raw JSON format.
+
+#### Step 1.2: Formatted Table Output
+
+```bash
+aws ec2 describe-instances \
+  --query "Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,PublicIpAddress,Tags[?Key=='Name'].Value | [0]]" \
+  --output table
+```
+- This command provides a cleaner view, showing only the following: Instance ID, Current state (running, stopped, etc.), Instance type (e.g., t2.micro), Public IP address (if any), Name tag (if assigned)
+
+#### Step 2: Launch a new EC2 instance
+
+- We will launch an EC2 instance just to verify that it successfully boots up.
+
+```bash
+aws ec2 run-instances \
+  --image-id ami-05ffe3c48a9991133 \
+  --count 1 \
+  --instance-type t2.micro \
+  --security-groups default \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=cli-instance-demo}]'
+```
+
+**Not**: The AMI ID used here (ami-05ffe3c48a9991133) is specific to the N. Virginia (us-east-1) region. If you are working in a different region, make sure to replace it with the correct AMI ID for that region.
+
+#### Step 3: Inspect the instance
+
+- After the instance is launched, you can check its status and public IP using:
+
+```bash
+aws ec2 describe-instances \
+  --filters Name=tag:Name,Values=cli-instance-demo \
+  --query "Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,PublicIpAddress]" \
+  --output table
+```
+
+#### Step 4:  Terminate the instance
+
+- First, retrieve the instance ID:
+
+```bash
+aws ec2 describe-instances \
+  --filters Name=tag:Name,Values=cli-instance-demo \
+  --query "Reservations[*].Instances[*].InstanceId" \
+  --output text
+```
+
+- Then terminate it:
+
+```bash
+aws ec2 terminate-instances --instance-ids <InstanceId>
+```
+- Replace <InstanceId> with the value you got from the previous command.
+
+#### Step 5: Confirm instance termination
+
+- Run the following to confirm the instance was terminated:
+
+```bash
+aws ec2 describe-instances \
+  --filters Name=tag:Name,Values=cli-instance-demo \
+  --query "Reservations[*].Instances[*].State.Name" \
+  --output text
+```
+
+- If the output is **terminated**, the instance has been successfully deleted.
