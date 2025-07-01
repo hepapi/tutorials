@@ -9,15 +9,15 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "us-east-1"
+  region = "eu-central-1"
 }
 
 # Define the EC2 instance
 resource "aws_instance" "example" {
-  ami           = "ami-05ffe3c48a9991133" # Amazon Linux 2 AMI (use a valid AMI ID for your region)
+  ami           = "ami-0229b8f55e5178b65" # Amazon Linux 2 AMI (use a valid AMI ID for your region)
   instance_type = "t2.micro"              # Free-tier eligible instance type
 
   tags = {
-    Name = "example-instance"
+    Name = "terraform-instance"
   }
 }

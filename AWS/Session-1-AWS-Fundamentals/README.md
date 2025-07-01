@@ -56,11 +56,13 @@ resize the widget by dragging the bottom-right corner of the widget.
 - On the left-hand of the console, choose `Buckets` and click on `Create bucket`.
 
 ```text
-Bucket name: test-bucket-for-session1-xxxxx
+Bucket name: <name>-training-test-bucket-for-session1
 Leave the rest as default.
 ```
 
 - To give a bucket a specific name, change `xxxxx` as required. 
+
+- Give a tag env = training
 
 - Then, choose `Create bucket`. Notice that the name of the bucket is displayed 
 among the list of all the buckets for the account.
@@ -79,7 +81,7 @@ among the list of all the buckets for the account.
 
 ### CLI installation and configuration
 
-- Open a new tab in the browser and go to `https://aws.amazon.com/cli/` to download the CLI.
+- Open a new tab in the browser and go to `https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html` to download the CLI.
 
 - Run the following command on the terminal to check the status of download.
 
@@ -130,7 +132,7 @@ Default output format [None]: json
 - Example CLI commands
 ```bash
 aws s3 ls
-aws s3 mb s3://<bucket_name> -- region
+aws s3 mb s3://<name>-training-session-1 --region
 ```
 
 - You can also complete the last part of this session using the CLI. Besides, you can access to AWS 
@@ -154,7 +156,7 @@ Policies : AmazonSSMManagedInstanceCore, AmazonS3FullAccess
 - Click `Next` and continue ...
 
 ```text
-Role Name: my-iam-role
+Role Name: <name>-training-first-iam-role
 Description: Using this role, EC2 instance can access to S3 and take Systems Manager functionality.
 Leave the rest as default.
 ```
@@ -166,7 +168,8 @@ Leave the rest as default.
 - From the menu on the left, choose `Instances`. Then, choose `Launch Instances`.
 
 ```text
-Name: CLI-Instance
+Region: eu-central-1
+Name: <name>-training-CLI-Instance
 Amazon Machine Image (AMI): Amazon Linux 2023
 Instance type: t2.micro
 Key-pair name: Proceed without key-pair
@@ -205,6 +208,7 @@ aws s3 ls
 ```bash
 aws s3 mb s3://sessionclibucket-NUMBER
 aws s3 ls
+cd /tmp && touch new-file
 aws s3 cp <file_name> s3://sessionclibucket-NUMBER
 ```
 
@@ -254,14 +258,14 @@ aws ec2 describe-instances \
 
 ```bash
 aws ec2 run-instances \
-  --image-id ami-05ffe3c48a9991133 \
+  --image-id ami-0229b8f55e5178b65 \
   --count 1 \
   --instance-type t2.micro \
   --security-groups default \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=cli-instance-demo}]'
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=<name>-tarining-cli-instance-demo}]'
 ```
 
-**Not**: The AMI ID used here (ami-05ffe3c48a9991133) is specific to the N. Virginia (us-east-1) region. If you are working in a different region, make sure to replace it with the correct AMI ID for that region.
+**Not**: The AMI ID used here (ami-0229b8f55e5178b65) is specific to the Europe(frankurt) (eu-central-1) region. If you are working in a different region, make sure to replace it with the correct AMI ID for that region.
 
 #### Step 3: Inspect the Instance
 
@@ -269,7 +273,7 @@ aws ec2 run-instances \
 
 ```bash
 aws ec2 describe-instances \
-  --filters Name=tag:Name,Values=cli-instance-demo \
+  --filters Name=tag:Name,Values=<name>-tarining-cli-instance-demo \
   --query "Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,PublicIpAddress]" \
   --output table
 ```
