@@ -537,7 +537,7 @@ import time
 import decimal
 from botocore.exceptions import ClientError
 
-dynamodb = boto3.resource('dynamodb', region_name='eu-west-1') # Region is important !
+dynamodb = boto3.resource('dynamodb', region_name='eu-west-3') # Region is important !
 table_name = 'ShoppingData-necip' # Change Your Name
 
 # Create DynamoDB table if it does not exist
