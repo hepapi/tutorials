@@ -647,6 +647,8 @@ python3 app.py
 Dashboard Name:     Dashboard-<YourName>
 ```
 
+#### Task 3.1: Add EC2 CPU Metrics Widget to Dashboard
+
 - Click `Create dashboard` again
 
 - Select a widget type to configure as `Line` and click `Next`
@@ -664,6 +666,8 @@ Rename Widget:     All CPU Metrics
 ```
 - click `Apply`
 
+#### Task 3.2: Add DynamoDB Table Metrics Widget to Dashboard
+
 - Click the `+` symbol in the top right
 - Select a widget type to configure as `Number` and click `Next`
 - Go to the DynamoDB console and copy the table name
@@ -672,6 +676,8 @@ Rename Widget:     All CPU Metrics
 - Select all metrics
 - Click `Create widget`
 - Adjust the table sizes according to your preference.
+
+#### Task 3.3: Add Gauge Widget for DynamoDB Write Capacity
 
 - Click the `+` symbol in the top right
 - Select a widget type to configure as `Gauge` and click `Next`
