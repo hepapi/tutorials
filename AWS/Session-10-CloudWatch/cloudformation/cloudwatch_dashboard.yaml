@@ -1,15 +1,47 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Description: EC2 Instance with DynamoDB access and browser-based SSH connection support
+
 Parameters:
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select your VPC
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select a public subnet in your VPC
+
+
 Resources:
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH for EC2 Instance Connect
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
   MyEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: t2.micro
       IamInstanceProfile: !Ref InstanceProfile
+      Tags:
+        - Key: Name
+          Value: EC2-DynamoDB
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref SubnetId
+          AssociatePublicIpAddress: true
+          GroupSet:
+            - !Ref EC2SecurityGroup
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -41,5 +73,9 @@ Resources:
 
 Outputs:
   EC2InstanceID:
-    Description: 'ID of the newly created EC2 instance'
+    Description: ID of the newly created EC2 instance
     Value: !Ref MyEC2Instance
+
+  EC2PublicDNS:
+    Description: Public DNS of the instance (for browser connect test)
+    Value: !GetAtt MyEC2Instance.PublicDnsName
