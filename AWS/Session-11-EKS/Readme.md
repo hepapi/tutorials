@@ -1506,6 +1506,7 @@ watch kubectl get nodes
 
 - Go to EKS --> Clusters --> Lab-AutoModeCluster-<YourName>
 - Click Delete cluster
+- Delete All IAM Roles and Policy you created
 
 
 
