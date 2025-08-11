@@ -576,7 +576,7 @@ kill -9 37115
 }
 ```
 
-- Attach this policy to the IAM Worker Node Role (AmazonEKSNodeRole-<YourName>) which is already in use. 
+- Attach this policy to the IAM Worker Node Role (AmazonEKSNodeRole-<Your Name>) which is already in use. 
 
 ### Task 2: Deploy Cluster Autoscaler
 
