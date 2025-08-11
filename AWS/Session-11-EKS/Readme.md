@@ -251,7 +251,7 @@ eksctl version
 - From the middle-hand menu, click on Compute --> **Add node group**
 
 ```text
-Node group name                     : My-NodeGroup-<YourName>
+Node group name                     : MyNodeGroup-<YourName>
 Node IAM role                       : AmazonEKSNodeRole-<YourName> (recommended)
 ```
 
