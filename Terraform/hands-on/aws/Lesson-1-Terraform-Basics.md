@@ -66,34 +66,53 @@
     msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
     ```
 
-    - Verify that the installation
+    - Confirm that the AWS CLI binaries are reachable.
 
-    ```bash
-    which aws
-    aws --version
-    ```
-    - Your AWS configured locally. 
+      ```bash
+      which aws
+      aws --version
+      ```
 
-    ```bash
-    aws configure
-    ```
-    - Hard-coding credentials into any Terraform configuration is not recommended, and risks secret leakage should this file ever be committed to a public version control system. Using IAM roles for server-based authentication is a more secure practice.
+        - Decide how you will access AWS for this hands-on:
 
-    - We will use IAM role (temporary credentials) for accessing your AWS account. 
+          - **Option A (EC2 with IAM Role):** Hard-coding credentials into any Terraform configuration is not recommended, and risks secret leakage should this file ever be committed to a public version control system. Using IAM roles for server-based authentication is a more secure practice.
+            
+            ***Create a role in IAM management console:***
+            - Secure way to make API calls is to create a role and assume it. It gives temporary credentials for access your account and makes API calls.
+            - Go to the IAM service, click "roles" in the navigation panel on the left then click "create role".
+            - Under the use cases, Select EC2, click "Next Permission" button.
+            - In the search box write EC2 and select `AmazonEC2FullAccess`, then search for S3 and select `AmazonS3FullAccess`. Click "Next: Tags" and "Next: Reviews".
+            - Name it `terraform`.
+            - Attach this role to your EC2 instance.
+            
+            Note: Using SSH with VSCode Remote can experience connectivity and latency issues, which is why we'll use Option B.
 
-### Create a role in IAM management console.
+          - **Option B (Local with AWS CLI):** Configure AWS CLI on your local machine with security credentials.
+            
+            **Getting AWS Credentials:**
+            - If using AWS SSO:
+              - Run `aws configure sso` command
+              - When prompted, enter:
+                - **SSO session name**: You can name this "terraform" or any name you prefer
+                - **SSO start URL**: Enter your organization's SSO URL (e.g., `https://xxx.awsapps.com/start/#/?tab=accounts`)
+                - **SSO Region**: Enter the AWS region where your SSO is configured (e.g., `us-east-1`)
+                - **SSO Registration scopes**: Press Enter to use default
+              - The CLI will open your browser for authentication
+              - After authentication, select the account and role you want to use
 
-- Secure way to make API calls is to create a role and assume it. It gives temporary credentials for access your account and makes API calls.
+              - If using IAM user: 
+                - Go to IAM → Users → Your user → Security credentials
+                - Create access key → Download credentials
+                - Run `aws configure` and enter your credentials
+              
+              **We will continue with Option B for this hands-on for faster local workflow.**
 
-- Go to the IAM service, click "roles" in the navigation panel on the left then click "create role". 
+            - Configure AWS CLI with your credentials:
 
-- Under the use cases, Select `EC2`, click "Next Permission" button.
+              ```bash
+              aws configure
+              ```
 
-- In the search box write EC2 and select `AmazonEC2FullAccess` then click "Next: Tags" and "Next: Reviews".
-
-- Name it `terraform`.
-
-- Attach this role to your EC2 instance. 
 
 
 ### Terraform Basics
@@ -168,7 +187,7 @@ The `profile` attribute in your provider block refers Terraform to the AWS crede
 
 The `resource` block defines a piece of infrastructure. A resource might be a physical component such as an EC2 instance.
 
-The resource block must have two required data for EC2. : the resource type and the resource name. In the example, the resource type is `aws_instance` and the local name is `tf-ec2`. The prefix of the type maps to the provider. In our case "aws_instance" automatically tells Terraform that it is managed by the "aws" provider.
+The resource block must have two required data for EC2. : the resource type and the resource name. In the example, the resource type is `aws_instance` and the resource name is `terraform-ec2`. The prefix of the type maps to the provider. In our case "aws_instance" automatically tells Terraform that it is managed by the "aws" provider.
 
 The arguments for the resource are within the resource block. The arguments could be things like machine sizes, disk image names, or VPC IDs. For your EC2 instance, you specified an AMI for `Amazon Linux 2` and instance type will be `t2.micro`.
 
@@ -571,7 +590,16 @@ Error: Error creating S3 bucket: AccessDenied: Access Denied
         status code: 403, request id: 8C5E290CD1CD3F71, host id: NT6nPSh0nW9rripGZrOAo48qJpZ2yToKCiGxDl6gfKIXY97uVH67lcvBiQjX9bsJRX3cL1oNVNM=
 ```
 
-- Attach `S3FullAccess` policy to the "terraform" role.
+**Note:** If you're working locally with AWS CLI credentials, you won't encounter this error. However, if you're running Terraform from an EC2 instance with an IAM role, you'll see this Access Denied error because the "terraform" role only has `AmazonEC2FullAccess` permission.
+
+**Solution for EC2 with IAM Role:**
+- Go to the IAM console
+- Find the "terraform" role
+- Click "Add permissions" → "Attach policies"
+- Search for and select `AmazonS3FullAccess`
+- Click "Add permissions"
+
+After updating the IAM role, try running the command again:
 
 ```bash
 terraform apply -auto-approve
