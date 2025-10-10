@@ -196,7 +196,7 @@ The arguments for the resource are within the resource block. The arguments coul
 
 When you create a new configuration you need to initialize the directory with `terraform init`.
 
-- Initialize the directory.   değişecek !!!!!!
+- Initialize the directory.
 
 ```bash
 terraform init
