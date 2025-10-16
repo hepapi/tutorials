@@ -25,7 +25,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "6.13.0"
+      version = "6.16.0"
     }
   }
 }
@@ -133,10 +133,6 @@ resource "aws_vpc" "terraform-vpc" {
   }
 }
 
-# resource "aws_vpc_ipv4_cidr_block_association" "other-cidr" {
-#   vpc_id     = aws_vpc.main.id
-#   cidr_block = var.other_cidr
-# }
 
 variable "vpc_name" {
     default = "hepapi-vpc"
@@ -149,11 +145,6 @@ variable "vpc_cidr" {
     description = "VPC CIDR block"
 }
 
-# variable "other_cidr" {
-#   type    = list(string)
-#   default = ["10.0.1.0/24", "10.0.2.0/24"]
-#    description = "vpc cidr block"
-# }
 ```
 
 ```bash
@@ -459,7 +450,7 @@ terraform apply -auto-approve
 
 - Go to the terminal and run `terraform graph`. It creates a visual graph of Terraform resources. The output of "terraform graph" command is in the DOT format, which can easily be converted to an image by making use of dot provided by GraphViz.
 
-- Copy the output and paste it to the `https://dreampuf.github.io/GraphvizOnline`. Then display it. If you want to display this output in your local, you can download graphviz (`brew install graphviz`) and take a `graph.svg` with the command `terraform graph | dot -Tsvg > graph.svg`. (NOTE: `https://graphviz.org/download/`)
+- Copy the output and paste it to the `https://dreampuf.github.io/GraphvizOnline`. Then display it. If you want to display this output in your local, you can download graphviz (`brew install graphviz or sudo apt install graphviz`) and take a `graph.svg` with the command `terraform graph | dot -Tsvg > graph.svg`. (NOTE: `https://graphviz.org/download/`)
 
 ```bash
 terraform graph

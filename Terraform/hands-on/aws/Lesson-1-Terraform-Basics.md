@@ -28,7 +28,11 @@
     https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_windows_386.zip
     ```
 
-    - Verify that the installation
+    - Extract the contents of the downloaded ZIP file. Move the extracted terraform.exe file to a permanent, easily accessible directory. Suggestion: Create a dedicated folder like C:\Program Files\Terraform and place terraform.exe inside it.
+
+    - You must add the folder containing terraform.exe to the system's PATH variable. Search the Windows Start menu for "Environment Variables" and open "Edit the system environment variables". Click the "Environment Variables..." button. In the "System variables" section (lower list), find the Path variable and double-click it. Click "New" and paste the full path to the folder where you placed terraform.exe (e.g., C:\Program Files\Terraform). Click "OK" to close all open windows and save the changes.
+
+    - Open a new terminal window. Verify that the installation.
 
     ```bash
     terraform version
@@ -113,6 +117,13 @@
               aws configure
               ```
 
+3. **Install Visual Studio Code**
+
+  - Navigate to the official download page: [Visual Studio Code Download Page](https://code.visualstudio.com/download)
+
+  - Download and run the installer for your operating system (Windows, macOS, or Linux). Default installation settings are sufficient.
+
+  - To get syntax highlighting, auto-completion, and code formatting, you must install the official HashiCorp extension. Open VS Code. Go to the Extensions view (Ctrl+Shift+X or click the Extensions icon). Search for HashiCorp Terraform. Find the extension published by HashiCorp and click Install.
 
 
 ### Terraform Basics
@@ -157,7 +168,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "6.13.0"
+      version = "6.16.0"
     }
   }
 }
