@@ -159,6 +159,7 @@ resource "aws_subnet" "subnet1" {
     Name = "Subnet1"
   }
 }
+
 resource "aws_subnet" "subnet2" {
   vpc_id     = aws_vpc.terraform-vpc.id
   cidr_block = var.subnet_cidr["subnet2"]
@@ -171,8 +172,8 @@ variable "subnet_cidr" {
     type = map
     description = "subnet cidr blocks"
     default = {
-        "subnet1" = ["10.0.1.0/24"]
-        "subnet2" = ["10.10.1.0/24"]
+        "subnet1" = "10.0.1.0/24"
+        "subnet2" = "10.0.2.0/24"
     }
 }
 ```
@@ -231,7 +232,7 @@ terraform destroy
 - You can set variables using command line flags without modifying your code.
 
 ```t
-terraform apply -var "ec2_name=Terraform" -var "ec2_type=t2.micro" -var "ec2_ami=ami-0360c520857e3138f" -var "ec2_key_name=ozia" -var "ecr_name=ecr_terraform" -var "image_tag_mutability=MUTABLE" -var "scan_on_push=true" -var "s3_bucket_name=hepapi-terraform-123456"
+terraform apply -var "ec2_name=Terraform" -var "ec2_type=t3.micro" -var "ec2_ami=ami-0360c520857e3138f" -var "ec2_key_name=ozia" -var "ecr_name=ecr_terraform" -var "image_tag_mutability=MUTABLE" -var "scan_on_push=true" -var "s3_bucket_name=hepapi-terraform-123456"
 ```
 ```t
 terraform destroy -var "ec2_name=Terraform" -var "ec2_type=t2.micro" -var "ec2_ami=ami-0360c520857e3138f" -var "ec2_key_name=ozia" -var "ecr_name=ecr_terraform" -var "image_tag_mutability=MUTABLE" -var "scan_on_push=true" -var "s3_bucket_name=hepapi-terraform-123456"
@@ -506,10 +507,10 @@ terraform apply
 ```
 
 ```t
-variable "ec2_type" {
-    default = "t2.small"
+variable "ec2_ami" {
+    default = "ami-0bbdd8c17ed981ef9"
     type = string
-    description = "ec2 type"
+    description = "ec2 ami"
 }
 ```
 
@@ -520,10 +521,25 @@ terraform apply
 ```bash
 Plan: 1 to add, 0 to change, 1 to destroy.
 
-xxxxxxxxxxxxxxxxx
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
 
-xxxxxx
-xxxxx
+  Enter a value: yes
+
+aws_instance.terraform-ec2: Creating...
+aws_instance.terraform-ec2: Still creating... [00m10s elapsed]
+aws_instance.terraform-ec2: Creation complete after 13s [id=i-0ff867f09f03e07dc]
+aws_instance.terraform-ec2 (deposed object aff904fc): Destroying... [id=i-0183e00c5888fc426]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 00m10s elapsed]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 00m20s elapsed]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 00m30s elapsed]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 00m40s elapsed]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 00m50s elapsed]
+aws_instance.terraform-ec2: Still destroying... [id=i-0183e00c5888fc426, 01m00s elapsed]
+aws_instance.terraform-ec2: Destruction complete after 1m0s
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
 ```
 
 ## prevent_destroy
@@ -574,9 +590,11 @@ terraform destroy
 ```bash
 │ Error: Instance cannot be destroyed
 │ 
-xxxxxxxxxx
-xxxxxx
-xxxxxxxxx
+│   on main.tf line 1:
+│    1: resource "aws_instance" "terraform-ec2" {
+│ 
+│ Resource aws_instance.terraform-ec2 has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue
+│ with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target option.
 ```
 
 ## ignore_changes
@@ -617,14 +635,16 @@ variable "ec2_key_name" {
     description = "ec2 key name"
 }
 
-
 ```
 
 ```bash
 terraform apply
-xxxxxxxxxxxxxx
-xxxxxxxxxxxx
-xxxxxxxxxx
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 ```
 
 ## Part 4 - Count, Length Function and For Each
@@ -762,11 +782,11 @@ resource "aws_s3_bucket" "terraform-s3-bucket" {
 }
 
 variable "s3_bucket_name" {
-    default = [
+    default = {
       "eu-central-1" = "hepapi-terraform",
       "us-east-1"    = "hepapi-terraform-one",
       "eu-west-1"    =  "hepapi-terraform-two"
-    ] 
+    } 
     type        = map(string)
     description = "bucket key-value"
 }
