@@ -784,8 +784,7 @@ resource "aws_s3_bucket" "terraform-s3-bucket" {
 variable "s3_bucket_name" {
     default = {
       "eu-central-1" = "hepapi-terraform",
-      "us-east-1"    = "hepapi-terraform-one",
-      "eu-west-1"    =  "hepapi-terraform-two"
+      "us-east-1"    = "hepapi-terraform-one"
     } 
     type        = map(string)
     description = "bucket key-value"
