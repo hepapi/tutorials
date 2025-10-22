@@ -834,6 +834,11 @@ resource "aws_instance" "instance" {
   tags = {
     Name = "terraform-instance-with-provisioner"
   }
+  user_data = <<-EOF
+              #!/bin/bash
+              echo HelloWorld >> /home/ubuntu/terraform.txt
+              EOF
+
 
   provisioner "local-exec" {
       command = "echo http://${self.public_ip} > public_ip.txt"
