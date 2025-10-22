@@ -23,10 +23,10 @@ In this session, we'll explore resource dependencies, datasources and terraform 
 > - Replace `<your-assigned-region>` with the region assigned to you (e.g., `us-east-1`, `us-west-2`, `eu-west-1`, etc.)
 > - Also replace `<your-name>` in resource names with your actual name to avoid naming conflicts
 > 
-> **Example:** If your name is "Zülüf" and you're assigned "eu-west-1":
+> **Example:** If your name is "Ahmet" and you're assigned "eu-west-1":
 > - Region: `eu-west-1`
-> - VPC Name: `terraform-vpc-
-> - Subnet Name: `terraform-subnet-abuzittin`
+> - VPC Name: `terraform-vpc-ahmet
+> - Subnet Name: `terraform-subnet-ahmet`
 
 ### Creating Resources with Dependencies
 
@@ -169,12 +169,12 @@ terraform destroy
 **Important: Creating Resources via AWS Console First**
 
 > **⚠️ CRITICAL STEP:** Before using datasources, you must manually create resources through the AWS Console with specific naming conventions:
-> - **VPC Name:** `terraform-vpc-<your-name>` (e.g., `terraform-vpc-abuzittin`)
+> - **VPC Name:** `terraform-vpc-<your-name>` (e.g., `terraform-vpc-ahmet`)
 >   - **CIDR Block:** `10.0.0.0/16`
-> - **Subnet Name:** `terraform-subnet-<your-name>` (e.g., `terraform-subnet-abuzittin`)
+> - **Subnet Name:** `terraform-subnet-<your-name>` (e.g., `terraform-subnet-ahmet`)
 >   - **CIDR Block:** `10.0.1.0/24`
 >   - **Important:** Make sure to select the correct VPC (`terraform-vpc-<your-name>`) when creating this subnet
-> - **Security Group Name:** `terraform-security-group-<your-name>` (e.g., `terraform-security-group-abuzittin`)
+> - **Security Group Name:** `terraform-security-group-<your-name>` (e.g., `terraform-security-group-ahmet`)
 >   - **Tags:** Add a tag with key `Name` and value `terraform-security-group-<your-name>`
 >   - **Important:** Make sure to select the correct VPC (`terraform-vpc-<your-name>`) when creating this security group
 >
@@ -194,7 +194,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13.0"
+      version = "~> 6.16.0"
     }
   }
 }
@@ -310,7 +310,7 @@ terraform destroy
 > 1. **Create a VPC:**
 >    - Go to VPC Dashboard in AWS Console
 >    - Click "Create VPC"
->    - **Name tag:** `terraform-import-vpc-<your-name>` (e.g., `terraform-import-vpc-abuzittin`)
+>    - **Name tag:** `terraform-import-vpc-<your-name>` (e.g., `terraform-import-vpc-ahmet`)
 >    - **IPv4 CIDR block:** `10.0.0.0/16`
 >    - Leave other settings as default
 >    - Click "Create VPC"
@@ -320,7 +320,7 @@ terraform destroy
 >    - In VPC Dashboard, go to "Subnets"
 >    - Click "Create subnet"
 >    - **VPC:** Select the VPC you just created (`terraform-import-vpc-<your-name>`)
->    - **Subnet name:** `terraform-import-subnet-<your-name>` (e.g., `terraform-import-subnet-abuzittin`)
+>    - **Subnet name:** `terraform-import-subnet-<your-name>` (e.g., `terraform-import-subnet-ahmet`)
 >    - **Availability Zone:** Select any available zone
 >    - **IPv4 CIDR block:** `10.0.0.0/24`
 >    - Click "Create subnet"
@@ -345,7 +345,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13.0"
+      version = "~> 6.16.0"
     }
   }
 }
@@ -488,7 +488,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13.0"
+      version = "~> 6.16.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -528,7 +528,7 @@ resource "random_string" "suffix" {
 }
 
 locals {
-  bucket_name = "tfstate-${var.name}-${random_string.suffix.result}" # ex: tfstate-abuzittin-381920
+  bucket_name = "tfstate-${var.name}-${random_string.suffix.result}" # ex: tfstate-ahmet-381920
 }
 
 resource "aws_s3_bucket" "tfstate" {
@@ -542,13 +542,17 @@ resource "aws_s3_bucket" "tfstate" {
 
 resource "aws_s3_bucket_versioning" "tfstate_versioning" {
   bucket = aws_s3_bucket.tfstate.id
-  versioning_configuration { status = "Enabled" }
+  versioning_configuration { 
+    status = "Enabled" 
+    }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "tfstate_sse" {
   bucket = aws_s3_bucket.tfstate.id
   rule {
-    apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+    apply_server_side_encryption_by_default { 
+      sse_algorithm = "AES256" 
+      }
   }
 }
 
@@ -557,15 +561,22 @@ resource "aws_dynamodb_table" "tf_locks" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
-  attribute { name = "LockID" type = "S" }
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
 
   tags = {
     Name = "terraform-locks"
   }
 }
 
-output "s3_bucket_name" { value = aws_s3_bucket.tfstate.bucket }
-output "dynamodb_table_name" { value = aws_dynamodb_table.tf_locks.name }
+output "s3_bucket_name" { 
+  value = aws_s3_bucket.tfstate.bucket 
+  }
+output "dynamodb_table_name" { 
+  value = aws_dynamodb_table.tf_locks.name 
+  }
 ```
 
 Run:
@@ -591,7 +602,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13.0"
+      version = "~> 6.16.0"
     }
   }
   backend "s3" {
@@ -622,7 +633,7 @@ variable "aws_profile" {
 }
 variable "name" { 
     type = string 
-    default = "abuzittin" 
+    default = "ahmet" 
 }
 ```
 
@@ -630,17 +641,25 @@ variable "name" {
 ```t
 resource "aws_vpc" "vpc" {
   cidr_block = "10.20.0.0/16"
-  tags = { Name = "remote-vpc-${var.name}" }
+  tags = { 
+    Name = "remote-vpc-${var.name}" 
+    }
 }
 
 resource "aws_subnet" "subnet" {
   vpc_id     = aws_vpc.vpc.id
   cidr_block = "10.20.1.0/24"
-  tags = { Name = "remote-subnet-${var.name}" }
+  tags = { 
+    Name = "remote-subnet-${var.name}" 
+    }
 }
 
-output "vpc_id" { value = aws_vpc.vpc.id }
-output "subnet_id" { value = aws_subnet.subnet.id }
+output "vpc_id" { 
+  value = aws_vpc.vpc.id 
+  }
+output "subnet_id" { 
+  value = aws_subnet.subnet.id 
+  }
 ```
 
 On first `terraform init` you will be asked to migrate state:
@@ -666,7 +685,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13.0"
+      version = "~> 6.16.0"
     }
   }
   backend "s3" {
@@ -705,7 +724,9 @@ variable "name" {
 ```t
 resource "aws_vpc" "vpc" {
   cidr_block = "10.20.0.0/16"
-  tags = { Name = "remote-vpc-${var.name}" }
+  tags = { 
+    Name = "remote-vpc-${var.name}" 
+    }
 }
 ```
 
@@ -759,272 +780,153 @@ Remote backend (AWS S3 + DynamoDB) setup complete.
 
 ## Part 4 - Terraform Provisioners
 
-- `Provisioners` in Terraform allow you to execute scripts or commands on your resources after they are created. This is particularly useful for configuring applications or services, performing setup tasks, or running scripts to install software.
+- Provisioners can be used to model specific actions on the local machine or on a remote machine in order to prepare servers or other infrastructure objects for service.
 
-- In this part, we will use two types of provisioners; 
-  `local-exec`: Executes a command on the machine where Terraform is run. This is often used to perform local actions or logging tasks.
-  `remote-exec`: Executes commands on a remote resource, such as a virtual machine. This is typically used to configure software on the newly created VM after it's been provisioned.
-  
-- `Custom Data` allows you to pass configuration scripts or data directly to a newly created resource, such as a virtual machine. This is often used to automate the initial setup of the VM by executing scripts upon boot.
+- The `local-exec` provisioner invokes a local executable after a resource is created. This invokes a process on the machine running Terraform, not on the resource.
+
+- The `remote-exec` provisioner invokes a script on a remote resource after it is created. This can be used to run a configuration management tool, bootstrap into a cluster, etc. To invoke a local process, see the local-exec provisioner instead. The remote-exec provisioner supports both ssh and winrm type connections.
+
+- The `file` provisioner is used to copy files or directories from the machine executing Terraform to the newly created resource. The file provisioner supports both ssh and winrm type connections.
+
+- Most provisioners require access to the remote resource via SSH or WinRM, and expect a nested connection block with details about how to connect. Connection blocks don't take a block label, and can be nested within either a resource or a provisioner.
+
+- The `self` object represents the provisioner's parent resource, and has all of that resource's attributes. For example, use `self.public_ip` to reference an aws_instance's public_ip attribute.
+
+- Take your `pem file` to your local instance's home folder for using `remote-exec` provisioner.
+
+- Go to your local machine and run the following command. 
+
+```bash
+scp -i ~/.ssh/<your pem file> <your pem file> ec2-user@<terraform instance public ip>:/home/ec2-user
+```
+
+- Or you can drag and drop your pem file to VS Code. Then change permissions of the pem file.
+
+```bash
+chmod 400 <your pem file>
+```
+
+```bash
+cd ..
+mkdir provisioner
+cd provisioner
+```
 
 ```t
-resource "azurerm_resource_group" "resource_group" {
-  name     = "terraform-rg-gokhan"
-  location = "West Europe"
-  tags = {
-    Name = "terraform-rg-gokhan"
-  }
-}
-resource "azurerm_virtual_network" "vnet" {
-  name                = "terraform-vnet"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  address_space       = ["10.0.0.0/16"]
-}
-resource "azurerm_subnet" "subnet" {
-  name                 = "terraform-subnet"
-  resource_group_name  = azurerm_resource_group.resource_group.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-resource "azurerm_network_interface" "nic" {
-  name                = "terraform-nic"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                    = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.public_ip.id 
-  }
-}
-resource "azurerm_public_ip" "public_ip" {
-  name                = "acceptanceTestPublicIp1"
-  resource_group_name = azurerm_resource_group.resource_group.name
-  location            = azurerm_resource_group.resource_group.location
-  allocation_method   = "Static"
-  tags = {
-    environment = "terraform_public_ip"
-  }
- }
-resource "azurerm_network_security_group" "security_group" {
-  name                = "terraform-sec-grp"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  security_rule {
-    name                       = "allow-ssh"
-    priority                   = 1000
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-  security_rule {
-    name                       = "allow-http"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-}
-resource "azurerm_network_interface_security_group_association" "nic_sec_association" {
-  network_interface_id      = azurerm_network_interface.nic.id
-  network_security_group_id = azurerm_network_security_group.security_group.id
-  depends_on = [ azurerm_network_interface.nic, azurerm_network_security_group.security_group ]
-}
-resource "azurerm_virtual_machine" "vm" {
-  name                  = "terraform-vm"
-  location              = azurerm_resource_group.resource_group.location
-  resource_group_name   = azurerm_resource_group.resource_group.name
-  network_interface_ids = [azurerm_network_interface.nic.id]
-  vm_size               = "Standard_DS1_v2"
-
-  delete_os_disk_on_termination = true
-
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-  storage_os_disk {
-    name              = "myosdisk2"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-  provisioner "local-exec" {
-    command = "echo Azure VM oluşturuldu: ${azurerm_virtual_machine.vm.name} IP Adresi: ${azurerm_network_interface.nic.private_ip_address} > local-exec.txt " 
-  }
-  provisioner "remote-exec" {
-    connection {
-      type     = "ssh"
-      user     = "testadmin"
-      password = "Password1234!"
-      host     = azurerm_public_ip.public_ip.ip_address
-      timeout  = "20m"
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 6.16.0"
     }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+resource "aws_instance" "instance" {
+  ami = var.ec2_ami
+  instance_type = var.ec2_type
+  key_name = var.ec2_key_name
+  vpc_security_group_ids = [ aws_security_group.tf-sec-gr.id ]
+  tags = {
+    Name = "terraform-instance-with-provisioner"
+  }
+
+  provisioner "local-exec" {
+      command = "echo http://${self.public_ip} > public_ip.txt"
+  
+  }
+
+  connection {
+    host = self.public_ip
+    type = "ssh"
+    user = "ubuntu"
+    private_key = file("~/ozia.pem") 
+  }
+
+  provisioner "remote-exec" {
     inline = [
-      "echo Azure VM oluşturuldu: ${azurerm_virtual_machine.vm.name} IP Adresi: ${azurerm_network_interface.nic.private_ip_address} > /home/testadmin/remote-exec.txt "
+      "sudo apt -y update",
+      "sudo apt -y install nginx",
+      "sudo systemctl enable nginx",
+      "sudo systemctl start nginx"
     ]
   }
-  tags = {
-    environment = "terraform"
+
+  provisioner "file" {
+    content = self.public_ip
+    destination = "/home/ubuntu/my_public_ip.txt"
   }
 }
-output "vm_ip" {
-  value = azurerm_network_interface.nic.private_ip_address
+
+resource "aws_security_group" "tf-sec-gr" {
+  name = "tf-provisioner-sg"
+  tags = {
+    Name = "tf-provisioner-sg"
+  }
+
+  ingress {
+    from_port   = 80
+    protocol    = "tcp"
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+      from_port = 22
+      protocol = "tcp"
+      to_port = 22
+      cidr_blocks = [ "0.0.0.0/0" ]
+  }
+
+  egress {
+      from_port = 0
+      protocol = -1
+      to_port = 0
+      cidr_blocks = [ "0.0.0.0/0" ]
+  }
 }
-output "vm_public_ip" {
-  value = azurerm_public_ip.public_ip.ip_address
+
+variable "aws_region" {
+  description = "AWS region for resources"
+  type        = string
+  default     = "us-east-1"
 }
+
+variable "ec2_ami" {
+  description = "EC2 instance AMI"
+  type        = string
+  default     = "ami-0360c520857e3138f" 
+}
+
+variable "ec2_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "ec2_key_name" {
+  description = "EC2 Key"
+  type        = string
+  default     = "ozia"
+}
+
 ```
+
+- Go to the Provisioners folder and run the terraform file.
 
 ```bash
+terraform init
 terraform apply
-terraform destroy
 ```
 
-```t
-resource "azurerm_resource_group" "resource_group" {
-  name     = "terraform-rg-gokhan"
-  location = "West Europe"
-  tags = {
-    Name = "terraform-rg-gokhan"
-  }
-}
-resource "azurerm_virtual_network" "vnet" {
-  name                = "terraform-vnet"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  address_space       = ["10.0.0.0/16"]
-}
-resource "azurerm_subnet" "subnet" {
-  name                 = "terraform-subnet"
-  resource_group_name  = azurerm_resource_group.resource_group.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-resource "azurerm_network_interface" "nic" {
-  name                = "terraform-nic"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                    = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.public_ip.id 
-  }
-}
-resource "azurerm_public_ip" "public_ip" {
-  name                = "acceptanceTestPublicIp1"
-  resource_group_name = azurerm_resource_group.resource_group.name
-  location            = azurerm_resource_group.resource_group.location
-  allocation_method   = "Static"
-  tags = {
-    environment = "terraform_public_ip"
-  }
- }
-resource "azurerm_network_security_group" "security_group" {
-  name                = "terraform-sec-grp"
-  location            = azurerm_resource_group.resource_group.location
-  resource_group_name = azurerm_resource_group.resource_group.name
-  security_rule {
-    name                       = "allow-ssh"
-    priority                   = 1000
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-  security_rule {
-    name                       = "allow-http"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-}
-resource "azurerm_network_interface_security_group_association" "nic_sec_association" {
-  network_interface_id      = azurerm_network_interface.nic.id
-  network_security_group_id = azurerm_network_security_group.security_group.id
-  depends_on = [ azurerm_network_interface.nic, azurerm_network_security_group.security_group ]
-}
-resource "azurerm_virtual_machine" "vm" {
-  name                  = "terraform-vm"
-  location              = azurerm_resource_group.resource_group.location
-  resource_group_name   = azurerm_resource_group.resource_group.name
-  network_interface_ids = [azurerm_network_interface.nic.id]
-  vm_size               = "Standard_DS1_v2"
+- Check the resources that created by terraform.
 
-  delete_os_disk_on_termination = true
-
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-  storage_os_disk {
-    name              = "myosdisk2"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-    custom_data    = <<-EOF
-                #!/bin/bash
-                sudo apt update
-                sudo apt install -y nginx
-                sudo systemctl start nginx
-                sudo systemctl enable nginx
-                EOF
-  }
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-  tags = {
-    environment = "terraform"
-  }
-}
-output "vm_ip" {
-  value = azurerm_network_interface.nic.private_ip_address
-}
-output "vm_public_ip" {
-  value = azurerm_public_ip.public_ip.ip_address
-}
-```
+- Terminate the resources.
 
 ```bash
-terraform apply
 terraform destroy
 ```
