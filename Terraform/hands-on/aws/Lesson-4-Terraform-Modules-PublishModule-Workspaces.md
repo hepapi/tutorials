@@ -467,7 +467,7 @@ git clone https://github.com/<your-github-account>/terraform-aws-docker-instance
 git add .
 git commit -m "should define your key file"
 git push
-git tag v0.0.6
+git tag v0.0.1
 git push --tags
 ```
 
