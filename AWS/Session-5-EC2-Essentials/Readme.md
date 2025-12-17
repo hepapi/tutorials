@@ -305,12 +305,25 @@ xvda      202:0    0  12G  0 disk
 ├─xvda1   202:1    0   8G  0 part /
 ```
 
+or
+
+```text
+nvme0n1       259:0    0   12G  0 disk
+├─nvme0n1p1   259:1    0   8G  0 part /
+```
 
 6. Expand the partition with the `growpart` command:
 
 ```bash
 sudo growpart /dev/xvda 1
 ```
+
+or 
+
+```bash
+sudo growpart /dev/nvme0n1 1
+```
+
 
 7. Verify that the partition size has increased:
 
@@ -324,10 +337,23 @@ xvda      202:0    0  12G  0 disk
 ├─xvda1   202:1    0  12G  0 part /
 ```
 
+or
+
+```text
+nvme0n1       259:0    0   12G  0 disk
+├─nvme0n1p1   259:1    0   12G  0 part /
+```
+
 8. Check which file system is used
 
 ```bash
 sudo file -s /dev/xvda1 
+```
+
+or
+
+```bash
+sudo file -s /dev/nvme0n1p1 
 ```
 
 9. Expand the filesystem with the `xfs_growfs` command:
@@ -337,6 +363,15 @@ df -h
 
 sudo xfs_growfs /dev/xvda1
 ```
+
+or
+
+```bash
+df -h
+
+sudo xfs_growfs /dev/nvme0n1p1
+```
+
 
 10. Verify the new filesystem size:
 
@@ -351,6 +386,12 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/xvda1      12G  1.6G   11G  14% /
 ```
 
+or
+
+```text
+Filesystem      Size  Used Avail Use% Mounted on  
+/dev/nvme0n1p1      12G  1.6G   11G  14% /
+```
 
 ## Part 7: Create and Attach a Secondary Volume  
 
@@ -507,4 +548,5 @@ lab.txt  lost+found
 
 5. Go to the **Volumes** tab on the left menu
    - Select the created Volumes ----> **Actions** ----> **Delete volumes** ----> **delete**
+
 
