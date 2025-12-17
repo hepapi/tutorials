@@ -433,6 +433,15 @@ xvda    202:0    0  12G  0 disk /
 xvdb      202:16   0  10G  0 disk
 ```
 
+or
+
+```text
+NAME          MAJ:MIN RM SIZE RO TYPE MOUNTPOINTS
+nvme0n1       259:0    0  12G  0 disk
+├─nvme0n1p1   259:1    0  12G  0 part /
+nvme1n1       259:4    0  10G  0 disk
+```
+
 ### Task 3: Create a Filesystem on the New Volume  
 
 1. Check the filesystem on `/dev/xvdf`:
@@ -440,6 +449,13 @@ xvdb      202:16   0  10G  0 disk
 ```bash
 sudo file -s /dev/xvdb
 ```
+
+or
+
+```bash
+sudo file -s /dev/nvme1n1
+```
+
 Example output:
 
 ```text
@@ -453,10 +469,24 @@ This indicates that no filesystem exists on the volume.
 sudo mkfs -t ext4 /dev/xvdb
 ```
 
+or
+
+```bash
+sudo mkfs -t ext4 /dev/nvme1n1
+```
+
 3. Verify the new filesystem:
+
 ```bash
 sudo file -s /dev/xvdb
 ```
+
+or
+
+```bash
+sudo file -s /dev/nvme1n1
+```
+
 Example output:
 ```text
 /dev/xvdb: Linux rev 1.0 ext4 filesystem data, UUID=66387523-aab5-4058-b41d-7e021b00a38b (extents) (64bit)
@@ -477,16 +507,32 @@ sudo mkdir /mnt/2nd-vol
 sudo mount /dev/xvdb /mnt/2nd-vol
 ```
 
+or
+
+```bash
+sudo mount /dev/nvme1n1 /mnt/2nd-vol
+```
+
 3. Verify the mount:
 
 ```bash
 lsblk
 ```
+
 Example output:
 ```text
 NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
 xvda    202:0    0  12G  0 disk /
 xvdf    202:80   0   2G  0 disk /mnt/2nd-vol
+```
+
+or
+
+```text
+NAME          MAJ:MIN RM SIZE RO TYPE MOUNTPOINTS
+nvme0n1       259:0    0  12G  0 disk
+├─nvme0n1p1   259:1    0  12G  0 part /
+nvme1n1       259:4    0  10G  0 disk /mnt/2nd-vol
 ```
 
 4. Check the mounted filesystem:
@@ -502,6 +548,13 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/xvdb       9.8G   24K  9.3G   1% /mnt/2nd-vol
 ```
 
+or
+
+```text
+Filesystem          Size  Used Avail Use% Mounted on  
+/dev/nvme0n1p1      12G  1.6G   11G  14% /  
+/dev/nvme1n1        9.8G   24K  9.3G   1% /mnt/2nd-vol
+```
 
 ### Task 5: Add a File to the New Volume  
 
@@ -548,5 +601,6 @@ lab.txt  lost+found
 
 5. Go to the **Volumes** tab on the left menu
    - Select the created Volumes ----> **Actions** ----> **Delete volumes** ----> **delete**
+
 
 
