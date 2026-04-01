@@ -33,7 +33,7 @@ git config --list
 git config --global user.name "Your Name"
 git config --global user.email "your_email@example.com"
 git config --global init.defaultBranch main  # default branch will be main 
- git config --global core.editor "code --wait" # default editor will be VScode
+git config --global core.editor "code --wait" # default editor will be VScode
 git config --list  # Verify the configuration
 ```
 
