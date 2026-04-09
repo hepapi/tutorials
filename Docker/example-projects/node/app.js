@@ -6,6 +6,10 @@ const app = express();
 const port = 3000;
 
 const dataFilePath = path.join(__dirname, 'data', 'data.json');
+fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
+if (!fs.existsSync(dataFilePath)) {
+  fs.writeFileSync(dataFilePath, '[]');
+}
 
 let data = [];
 if (fs.existsSync(dataFilePath)) {

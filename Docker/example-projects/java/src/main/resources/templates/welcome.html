@@ -4,12 +4,161 @@
 
   <body>
 
-    <h2 th:text="#{welcome}">Welcome</h2>
-    <div class="row">
-        <div class="col-md-12">
-          <img class="img-responsive" src="../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}"/>
+    <style>
+      .welcome-hero {
+        position: relative;
+        overflow: hidden;
+        margin-top: 1rem;
+        padding: 2.75rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at top right, rgba(245, 158, 11, 0.22), transparent 30%),
+          linear-gradient(135deg, #fff7ed 0%, #fffbeb 45%, #ffffff 100%);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+      }
+
+      .welcome-hero h2 {
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: clamp(2.1rem, 3vw, 3.4rem);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      .welcome-kicker {
+        display: inline-block;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        background: rgba(194, 65, 12, 0.1);
+        color: #9a3412;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .welcome-copy {
+        color: #6b7280;
+        font-size: 1.05rem;
+        line-height: 1.8;
+      }
+
+      .welcome-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        margin-top: 1.5rem;
+      }
+
+      .welcome-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .welcome-button-primary {
+        background: #111827;
+        color: #ffffff;
+      }
+
+      .welcome-button-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #111827;
+        border: 1px solid rgba(17, 24, 39, 0.08);
+      }
+
+      .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 1.75rem;
+      }
+
+      .welcome-stat {
+        padding: 1.1rem 1.15rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+      }
+
+      .welcome-stat strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 1.6rem;
+        letter-spacing: -0.04em;
+      }
+
+      .welcome-stat span {
+        color: #6b7280;
+      }
+
+      .welcome-visual {
+        text-align: center;
+      }
+
+      .welcome-visual img {
+        max-width: 100%;
+        filter: drop-shadow(0 24px 50px rgba(194, 65, 12, 0.18));
+      }
+
+      @media (max-width: 992px) {
+        .welcome-hero {
+          padding: 1.5rem;
+        }
+
+        .welcome-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+
+    <section class="welcome-hero">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+          <span class="welcome-kicker">Java Example</span>
+          <h2>Pet care operations, ready for a Docker demo.</h2>
+          <p class="welcome-copy">
+            This Spring Boot Petclinic sample is ideal for showing the jump from a local Java app
+            to a containerized workload. It has a recognizable UI, realistic routes, and a clear path
+            to multi-container demos with a database later on.
+          </p>
+
+          <div class="welcome-actions">
+            <a class="welcome-button welcome-button-primary" th:href="@{/owners/find}">
+              <span class="fa fa-search"></span>
+              Find owners
+            </a>
+            <a class="welcome-button welcome-button-secondary" th:href="@{/vets.html}">
+              <span class="fa fa-th-list"></span>
+              View veterinarians
+            </a>
+          </div>
+
+          <div class="welcome-stats">
+            <div class="welcome-stat">
+              <strong>Java 17</strong>
+              <span>runtime used for local execution</span>
+            </div>
+            <div class="welcome-stat">
+              <strong>Spring Boot</strong>
+              <span>application framework</span>
+            </div>
+            <div class="welcome-stat">
+              <strong>8080</strong>
+              <span>default application port</span>
+            </div>
+          </div>
         </div>
-    </div>
+        <div class="col-lg-5 welcome-visual">
+          <img class="img-responsive" src="../static/resources/images/pets.png" th:src="@{/resources/images/pets.png}" alt="PetClinic pets" />
+        </div>
+      </div>
+    </section>
 
   </body>
 

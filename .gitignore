@@ -104,3 +104,7 @@ override.tf.json
 .terraformrc
 terraform.rc
 .vscode/*
+Docker/example-projects/node/node_modules/
+Docker/example-projects/node/data/*.json
+Docker/example-projects/dotnet/bin/
+Docker/example-projects/dotnet/obj/

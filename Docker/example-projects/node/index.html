@@ -1,32 +1,328 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Simple App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Container Notes</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4efe7;
+      --panel: rgba(255, 255, 255, 0.8);
+      --panel-strong: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #bf4f26;
+      --accent-dark: #933d1d;
+      --border: rgba(31, 41, 55, 0.1);
+      --shadow: 0 20px 50px rgba(31, 41, 55, 0.12);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(191, 79, 38, 0.16), transparent 30%),
+        linear-gradient(160deg, #fcfbf7 0%, var(--bg) 55%, #efe5d5 100%);
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-copy {
+      padding: 32px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(191, 79, 38, 0.12);
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      max-width: 52ch;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: grid;
+      gap: 16px;
+      padding: 24px;
+      align-content: center;
+    }
+
+    .stat {
+      padding: 20px;
+      border-radius: 20px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+    }
+
+    .stat span {
+      color: var(--muted);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(280px, 380px) 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      padding: 28px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.3rem;
+    }
+
+    .panel p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      border-radius: 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input:focus {
+      outline: 3px solid rgba(191, 79, 38, 0.18);
+      border-color: rgba(191, 79, 38, 0.45);
+    }
+
+    button {
+      width: 100%;
+      padding: 15px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #dd6a3e);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(191, 79, 38, 0.24);
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(31, 41, 55, 0.06);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    #data-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .entry {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+    }
+
+    .entry strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .entry span {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      padding: 28px;
+      border: 1px dashed rgba(31, 41, 55, 0.18);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .shell {
+        width: min(1080px, calc(100% - 20px));
+        padding-top: 20px;
+      }
+
+      .hero-copy,
+      .hero-stats,
+      .panel {
+        padding: 22px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Data Entry</h1>
-  <form action="/data" method="post">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required>
-    <br>
-    <label for="data">Data:</label>
-    <input type="text" id="data" name="data" required>
-    <br>
-    <button type="submit">Save Data</button>
-  </form>
+  <main class="shell">
+    <section class="hero">
+      <div class="card hero-copy">
+        <span class="eyebrow">Node.js Example</span>
+        <h1>Container Notes</h1>
+        <p>
+          A simple note board for demos. Submit a small record, refresh the page,
+          and use it to explain why persistent data matters before Docker volumes.
+        </p>
+      </div>
+      <div class="card hero-stats">
+        <div class="stat">
+          <strong id="entry-count">0</strong>
+          <span>saved entries</span>
+        </div>
+        <div class="stat">
+          <strong>3000</strong>
+          <span>local application port</span>
+        </div>
+      </div>
+    </section>
 
-  <h2>Saved Data</h2>
-  <ul id="data-list"></ul>
+    <section class="content">
+      <div class="card panel">
+        <h2>Add a New Entry</h2>
+        <p>Use a short name and any message you want to persist across restarts.</p>
+        <form action="/data" method="post">
+          <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="samet" required>
+          </div>
+          <div class="field">
+            <label for="data">Message</label>
+            <input type="text" id="data" name="data" placeholder="Docker makes setup predictable." required>
+          </div>
+          <button type="submit">Save Entry</button>
+        </form>
+      </div>
+
+      <div class="card panel">
+        <div class="list-header">
+          <div>
+            <h2>Saved Data</h2>
+            <p>Entries are loaded from the server on each page refresh.</p>
+          </div>
+          <span class="badge" id="status-badge">Loading...</span>
+        </div>
+        <ul id="data-list"></ul>
+      </div>
+    </section>
+  </main>
 
   <script>
     async function fetchData() {
       const response = await fetch('/data');
       const data = await response.json();
       const dataList = document.getElementById('data-list');
+      const count = document.getElementById('entry-count');
+      const badge = document.getElementById('status-badge');
+
+      count.textContent = data.length;
+      badge.textContent = `${data.length} item${data.length === 1 ? '' : 's'}`;
       dataList.innerHTML = '';
-      data.forEach(item => {
+
+      if (data.length === 0) {
+        const emptyState = document.createElement('li');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'No entries yet. Add one from the form to populate the dataset.';
+        dataList.appendChild(emptyState);
+        return;
+      }
+
+      data.slice().reverse().forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `Username: ${item.username}, Data: ${item.data}`;
+        li.className = 'entry';
+        li.innerHTML = `
+          <strong>${item.username}</strong>
+          <span>${item.data}</span>
+        `;
         dataList.appendChild(li);
       });
     }
