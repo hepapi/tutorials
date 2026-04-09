@@ -1,0 +1,16 @@
+.git
+.gitignore
+.gitpod.yml
+.devcontainer
+.mvn
+target
+compose.yaml
+README.md
+LICENSE.txt
+mysql_password.txt
+mysql_root_password.txt
+build.gradle
+settings.gradle
+gradle
+gradlew
+gradlew.bat

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -189,7 +190,7 @@ app.MapGet("/", () => Results.Content(@"
           <span>application port</span>
         </div>
         <div class=""card"">
-          <strong>.NET 6</strong>
+          <strong>.NET 10</strong>
           <span>runtime target</span>
         </div>
         <div class=""card"">
@@ -230,7 +231,7 @@ app.MapGet("/health", () => Results.Json(new { status = "ok" }));
 app.MapGet("/api/info", () => Results.Json(new
 {
     name = "shipping-dashboard",
-    framework = ".NET 6",
+    framework = ".NET 10",
     port = 8080
 }));
 

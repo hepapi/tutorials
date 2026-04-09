@@ -1,7 +1,15 @@
-FROM maven:3.9.5-amazoncorretto-17 AS builder 
-COPY . /app
+# syntax=docker/dockerfile:1.7
+
+FROM maven:3.9.5-amazoncorretto-17 AS builder
 WORKDIR /app
-RUN mvn clean package
+
+COPY pom.xml ./
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -DskipTests dependency:go-offline
+
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -DskipTests package
 
 FROM amazoncorretto:17-alpine3.18
 WORKDIR /app

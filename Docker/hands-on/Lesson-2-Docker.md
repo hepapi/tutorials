@@ -63,7 +63,7 @@
     ```bash
     cd Docker/example-projects/node
     ```
-2. Create a `compose.yaml` file:
+2. Create a `docker-compose.yaml` file:
     ```yaml
     services:
       app:
@@ -88,20 +88,15 @@
     ```bash
     cd ../java
     ```
-2. Examine the Dockerfile and build the image:
-    ```bash
-    docker build -t java-app:v1 .
-    ```
-3. Create a `compose.yaml` file:
+2. Create a `compose.yaml` file:
     ```yaml
     services:
       mysql-server:
         image: mysql:8.2
         environment:
-          MYSQL_ROOT_PASSWORD:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
           MYSQL_USER: petclinic
-          MYSQL_PASSWORD: petclinic
+          MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
           MYSQL_DATABASE: petclinic
         ports:
           - "3306:3306"
@@ -109,26 +104,54 @@
           - petnet
         volumes:
           - mysql-data:/var/lib/mysql
+        secrets:
+          - mysql_root_password
+          - mysql_password
+        healthcheck:
+          test:
+            - CMD-SHELL
+            - mysqladmin ping -h 127.0.0.1 -uroot -p"$$(cat /run/secrets/mysql_root_password)" --silent
+          interval: 5s
+          timeout: 3s
+          retries: 20
+          start_period: 30s
 
       petclinic:
+        build:
+          context: .
         image: java-app:v1
         restart: always
         depends_on:
-          - mysql-server
+          mysql-server:
+            condition: service_healthy
+        command: >
+          sh -c 'export MYSQL_PASS="$$(cat /run/secrets/mysql_password)" && exec java -jar app.jar'
         ports:
           - "9090:8080"
         networks:
           - petnet
+        secrets:
+          - mysql_password
 
     networks:
       petnet:
 
     volumes:
       mysql-data:
+
+    secrets:
+      mysql_root_password:
+        file: ./mysql_root_password.txt
+      mysql_password:
+        file: ./mysql_password.txt
+    ```
+3. Build the Petclinic image with Compose:
+    ```bash
+    docker compose build petclinic
     ```
 4. Start the services:
     ```bash
-    docker compose up
+    docker compose up -d
     ```
 5. Open your browser and go to http://localhost:9090
 

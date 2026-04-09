@@ -89,7 +89,7 @@
     b.  crate a new multistage dockerfile 
     ```dotnet-multistage-dockerfile
         # Build Stage
-        FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
         WORKDIR /source
 
         # Copy the project file and restore as distinct layers
@@ -98,14 +98,14 @@
 
         # Copy the remaining source code and build the application
         COPY . .
-        RUN dotnet publish -c release -o /app
+        RUN dotnet publish -c release -o /out
 
         # Runtime Stage
-        FROM mcr.microsoft.com/dotnet/aspnet:6.0
+        FROM mcr.microsoft.com/dotnet/aspnet:10.0
         WORKDIR /app
 
         # Copy only the necessary files from the build stage
-        COPY --from=build /app .
+        COPY --from=build /out .
 
         # Expose the application port
         EXPOSE 8080
@@ -153,6 +153,4 @@
 - Enter some data and kill container with "docker rm -f app" command.
 
 - Re-run container and see that you can access old data
-
-
 
