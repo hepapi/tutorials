@@ -1,5 +1,14 @@
 # Kubernetes Objects Hands-On
 
+```
+minikube start --nodes 3 --driver=docker 
+kubectl get nodes
+minikube node add
+minikube node add
+kubectl get nodes
+```
+
+
 ## Object Model
 - Examine the parts a Kubernetes object consists of:
 ```bash
@@ -33,6 +42,7 @@ spec:
 - run basic-pod
 ```bash
     kubectl apply -f basic-pod.yaml
+    kubectl port-forward pods/nginx-declerative-pod 8888:80
 ```
 
 - Delete pods
@@ -62,10 +72,9 @@ spec:
   - name: init-myservice
     image: busybox:1.31
     command:
-    - wget
-    - "-O"
-    - "/work-dir/index.html"
-    - "https://www.example.com"
+    - /bin/sh
+    - -c
+    - wget -O /work-dir/index.html https://www.example.com
     volumeMounts:
     - name: workdir
       mountPath: "/work-dir"
@@ -132,6 +141,8 @@ spec:
     # run below command inside the container
     cd /fluentd/log
     ls
+    cat access.log
+    kubectl port-forward pods/sidecar-container-pod 8888:80 # Expose the pod locally, then send a few requests to http://localhost:8888
     cat access.log
 ```
 - Review the prometheus-rancher-monitoring-prometheus-0 pod in the cluster for a practical example.
@@ -202,6 +213,7 @@ spec:
 kubectl rollout undo deployment/nginx-deployment --to-revision=1 # rollback to revision 1
 kubectl describe deployments nginx-deployment # review the deployment details
 kubectl rollout history deployment/nginx-deployment # see the updated version
+kubectl delete deployment nginx-deployment
 ```
 - Talk about creating pod or deployment even if 1 replica. Why use a Deployment instead of a Pod? 
 
@@ -261,6 +273,7 @@ spec:
   # change the image to sametustaoglu/simple-node-app:v1
   kubectl apply -f complex-deployment.yaml # apply the updated file
   watch kubectl get po # see max 1 pod unavailable due to rolling updates with probes
+  
 ```
 - For more details, visit the Kubernetes Deployment Documentation. https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
 
@@ -270,6 +283,7 @@ spec:
   # change the image to sametustaoglu/simple-node-app:small-size
   kubectl apply -f complex-deployment.yaml # reapply the updated file
   watch kubectl get po # see new pods created after old ones are terminated
+  kubectl delete deployments complex-deployment
 ```
 
 ## Daemonset
@@ -371,6 +385,7 @@ spec:
 ```bash
   kubectl apply -f daemonset.yaml # apply again with toleration
   kubectl get pods -n logging  -o wide # see pods on all nodes
+  kubectl delete daemonset fluentd-daemonset -n logging
 ```
 
 ## Jobs
