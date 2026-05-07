@@ -29,9 +29,9 @@ Purpose of this hands-on training is to give participants the knowledge of Kuber
 
 ```bash
 minikube delete
-minikube start # with single node 
+minikube start --cni=flannel # with single node 
 kubectl get nodes
-```
+``` 
   
 ### Emptydir
 - Create a `pod-emptydir.yaml` file that uses emptydir volume using the following content.
@@ -52,6 +52,9 @@ kind: Pod
 metadata:
   name: emptydir
 spec:
+  volumes:
+  - name: cache-vol
+    emptyDir: {}
   containers:
   - name: frontend
     image: sametustaoglu/volume:v1
@@ -73,9 +76,7 @@ spec:
     volumeMounts:
     - name: cache-vol
       mountPath: /tmp/log
-  volumes:
-  - name: cache-vol
-    emptyDir: {}
+  
 ```
 
 - Create and exec into the emptyDir pod and create some files.
@@ -139,6 +140,11 @@ kind: Pod
 metadata:
   name: hostpath
 spec:
+  volumes:
+  - name: firstvolume
+    hostPath:
+      path: /tmp/data
+      type: DirectoryOrCreate
   containers:
   - name: hostpathcontainer
     image: sametustaoglu/volume:v1
@@ -153,11 +159,7 @@ spec:
     volumeMounts:
     - name: firstvolume
       mountPath: /cache    
-  volumes:
-  - name: firstvolume
-    hostPath:
-      path: /tmp/data
-      type: DirectoryOrCreate
+  
 ```
 
 ```bash
@@ -216,7 +218,7 @@ kubectl get node
 
 ```bash
 # Create a VM named NFS
-multipass launch 20.04 --name nfs --cpus 2 --disk 20G --memory 2G # this command takes some time
+multipass launch 24.04 --name nfs --cpus 2 --disk 20G --memory 4G -vvv # this command takes some time
 multipass shell nfs
 # Configure the created VM as nfs-server
 sudo apt-get update
