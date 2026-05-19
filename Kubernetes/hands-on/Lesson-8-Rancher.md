@@ -13,20 +13,20 @@
   - Upstream(Rancher) Cluster:
     - Master Node:
       ```bash
-      multipass launch 20.04 --name upstream-master --cpus 3 --memory 5G --disk 20G
+      multipass launch 24.04 --name upstream-master --cpus 3 --memory 6G --disk 20G
       ```
     - Worker Node:
       ```bash
-      multipass launch 20.04 --name upstream-worker --cpus 2 --memory 2G --disk 10G
+      multipass launch 24.04 --name upstream-worker --cpus 2 --memory 2G --disk 10G
       ```
   - Downstream Cluster
     - Master Node:
     ```bash
-      multipass launch 20.04 --name downstream-1-master --cpus 2 --memory 4G --disk 15G
+      multipass launch 24.04 --name downstream-1-master --cpus 2 --memory 4G --disk 15G
     ```
     - Worker Node:
       ```bash
-      multipass launch 20.04 --name downstream-1-worker --cpus 2 --memory 2G --disk 10G
+      multipass launch 24.04 --name downstream-1-worker --cpus 2 --memory 2G --disk 10G
       ```
 
 ## Part 1: Creating the Upstream Cluster
@@ -61,14 +61,14 @@ systemctl start rke2-server.service
 
 ```bash
 # Create a symbolic link for kubectl
-ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
+ln -s $(find /var/lib/rancher/rke2/data/v1.*/bin/ -name kubectl) /usr/local/bin/kubectl
 # add kubectl conf
 export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
 # check node status
 kubectl  get node
 alias k=kubectl
 echo "export KUBECONFIG=/etc/rancher/rke2/rke2.yaml" >> .bashrc
-echo " alias k=kubectl" >> .bashrc
+echo "alias k=kubectl" >> .bashrc
 kubectl get no -w
 systemctl status rke2-server
 
@@ -141,7 +141,7 @@ sudo -i
 2. **Install Helm and Add Helm Charts**:
 
 ```bash
-curl -#L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+curl -L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 # Add necessary Helm charts
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 helm repo add jetstack https://charts.jetstack.io
@@ -151,7 +151,7 @@ helm repo add jetstack https://charts.jetstack.io
 
 ```bash
 # Apply the Cert-Manager CRD
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.crds.yaml
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.19.5/cert-manager.crds.yaml
 # Install Cert-Manager
 helm upgrade -i cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
 # Verify Cert-Manager pods
@@ -190,7 +190,7 @@ sudo -i
 # Run the registration command with --insecure flag
 
 # Create a symbolic link for kubectl
-ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
+ln -s $(find /var/lib/rancher/k3s/data/current/bin -name kubectl) /usr/local/bin/kubectl
 # Add kubectl configuration
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 # Check node status
