@@ -210,7 +210,9 @@ Value  : Lab-Elastic IP-<YourName>
 
 ```text
 Name                      : Lab-NAT-gateway-<YourName>
+Availability mode         : Zonal
 Subnet                    : Lab-az1a-public-subnet-<YourName>
+Connectivity type         : Public
 Elastic IP allocation ID  : Lab-Elastic IP-<YourName>
 ```
 
