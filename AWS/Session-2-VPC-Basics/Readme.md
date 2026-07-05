@@ -279,12 +279,13 @@ ssh-add -L
 ssh -A ec2-user@<Bastion Host Public IP>
 ```
 
-- First logged into the Bastion Host, then connect to the Private Instance
+If your SSH private key is not configured in `~/.ssh/config` or is not the default identity, specify it explicitly:
 
 ```bash
-ssh ec2-user@<Private Instance Private IP>
+ssh -A -i <Your_Private_Key> ec2-user@<Bastion Host Public IP>
 ```
 
+> **Note:** The `-A` option enables SSH agent forwarding, allowing you to use your local SSH keys when connecting from the bastion host to private instances. It does not specify which private key is used for the initial connection. Use the `-i` option if the correct key is not selected automatically.
 
 ## Task 10: Create a Interface Endpoint
 
