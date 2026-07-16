@@ -221,6 +221,51 @@ Security Group
                        All ICMP IPv4  ---> Anywhere
 ```
 
+### Optional: Set Hostnames for Easier Identification
+
+Before testing SSH connectivity, connect to each EC2 instance and assign a descriptive hostname. This makes it easier to identify which server you are currently connected to during the lab.
+
+#### Server-1
+```bash
+sudo hostnamectl set-hostname server-1
+exec $SHELL
+hostname
+```
+
+Expected output:
+
+```text
+server-1
+```
+
+#### Server-2
+```bash
+sudo hostnamectl set-hostname server-2
+exec $SHELL
+hostname
+```
+
+Expected output:
+
+```text
+server-2
+```
+
+#### Private Instance
+```bash
+sudo hostnamectl set-hostname private-server
+exec $SHELL
+hostname
+```
+
+Expected output:
+
+```text
+private-server
+```
+
+> **Note:** This step is optional and is only used to make SSH sessions easier to identify throughout the lab.
+
 ### Step-2
 
 - Try to connect Server-1 Instance ---> Private Instance via ssh (Don't forget to move the private key to Server-1 Instance)
