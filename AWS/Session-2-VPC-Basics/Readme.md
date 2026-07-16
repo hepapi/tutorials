@@ -287,6 +287,22 @@ ssh -A -i <Your_Private_Key> ec2-user@<Bastion Host Public IP>
 
 > **Note:** The `-A` option enables SSH agent forwarding, allowing you to use your local SSH keys when connecting from the bastion host to private instances. It does not specify which private key is used for the initial connection. Use the `-i` option if the correct key is not selected automatically.
 
+- Connect to the Private Instance Through the Bastion Host
+
+After successfully connecting to the Bastion Host, connect to the private instance by using its private IP address:
+
+```bash
+ssh ec2-user@<Private-Instance-Private-IP>
+```
+
+Example:
+
+```bash
+ssh ec2-user@10.0.2.25
+```
+
+Because SSH agent forwarding was enabled with the -A option, you do not need to copy the private key file to the Bastion Host.
+
 ## Task 10: Create a Interface Endpoint
 
 - At the top of the AWS Management Console, in the search bar, search for and choose 'VPC'
