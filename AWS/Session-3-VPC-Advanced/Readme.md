@@ -265,10 +265,12 @@ Expected output:
 server-2
 ```
 
-#### Connect to the Private Instance
+#### Private Instance
+
+From either **Server-1** or **Server-2**, connect to the Private Instance using its private IP address:
 
 ```bash
-ssh -i Lab-Key.pem ec2-user@<Private-Instance-Public-IP>
+ssh -i Lab-Key.pem ec2-user@<Private-Instance-Private-IP>
 ```
 
 Set the hostname:
@@ -277,12 +279,6 @@ Set the hostname:
 sudo hostnamectl set-hostname private-server
 exec $SHELL
 hostname
-```
-
-Expected output:
-
-```text
-private-server
 ```
 
 > **Note:** This step is optional and is only intended to make SSH sessions easier to identify during the lab.
