@@ -63,6 +63,12 @@ Security Group
 ssh -i Lab-Key.pem ec2-user@<Server-1 Instance Public IP>
 ```
 
+- After confirming the connection is successful, exit the SSH session before proceeding to the next task:
+- 
+```bash
+exit
+```
+
 ## Task 3: Change the Security Group for the Server-1 Instance
 
 - Return to the EC2 page and select the Server-1 instance
