@@ -64,7 +64,7 @@ ssh -i Lab-Key.pem ec2-user@<Server-1 Instance Public IP>
 ```
 
 - After confirming the connection is successful, exit the SSH session before proceeding to the next task:
-- 
+
 ```bash
 exit
 ```
