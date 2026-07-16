@@ -189,18 +189,19 @@ Tags
 - Configure Server-1 instance
 
 ```text
-Name                 : Server-2 Instance-<YourName>
-AMI                  : Amazon Linux 2023 AMI
-Instance Type        : t2.micro
-Key pair name        : Lab-Key
+Name                     : Server-2 Instance-<YourName>
+AMI                      : Amazon Linux 2023 AMI
+Instance Type            : t2.micro
+Key pair name            : Lab-Key
 Network settings 
-    VPC              : Lab-VPC
-    Subnet           : Lab-az1a-public-subnet
+    VPC                  : Lab-VPC
+    Subnet               : Lab-az1a-public-subnet
+    Auto-assign public IP: Enable
 Firewall (security groups)
 Security Group    
-    Sec.Group Name   : SSH-Sec.-Group-<YourName>
-    Rules            : TCP --- > 22 ---> Anywhere
-                       All ICMP IPv4  ---> Anywhere
+    Sec.Group Name       : SSH-Sec.-Group-<YourName>
+    Rules                : TCP --- > 22 ---> Anywhere
+                           All ICMP IPv4  ---> Anywhere
 ```
 
 - Configure Private instance
