@@ -40,18 +40,19 @@ VPC endpoints                                           : None
 - Configure Server-1 instance
 
 ```text
-Name                 : Server-1 Instance-<YourName>
-AMI                  : Amazon Linux 2023 AMI
-Instance Type        : t2.micro
-Key pair name        : Lab-Key
+Name                     : Server-1 Instance-<YourName>
+AMI                      : Amazon Linux 2023 AMI
+Instance Type            : t2.micro
+Key pair name            : Lab-Key
 Network settings 
-    VPC              : Lab-VPC-<YourName>
-    Subnet           : Lab-az1a-public-subnet
+    VPC                  : Lab-VPC-<YourName>
+    Subnet               : Lab-az1a-public-subnet
+    Auto-assign public IP: Enable
 Firewall (security groups)
 Security Group    
-    Sec.Group Name   : SSH-Sec.-Group-<YourName>
-    Rules            : TCP --- > 22 ---> Anywhere
-                       All ICMP IPv4  ---> Anywhere
+    Sec.Group Name       : SSH-Sec.-Group-<YourName>
+    Rules                : TCP --- > 22 ---> Anywhere
+                           All ICMP IPv4  ---> Anywhere
 ```
 
 ## Task 2: Connect to Server-1 Instance
