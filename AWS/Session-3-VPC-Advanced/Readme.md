@@ -223,9 +223,16 @@ Security Group
 
 ### Optional: Set Hostnames for Easier Identification
 
-Before testing SSH connectivity, connect to each EC2 instance and assign a descriptive hostname. This makes it easier to identify which server you are currently connected to during the lab.
+Before testing SSH connectivity between the instances, connect to each EC2 instance from your local machine and assign a descriptive hostname. This makes it easier to identify which server you are currently connected to throughout the lab.
 
-#### Server-1
+#### Connect to Server-1
+
+```bash
+ssh -i Lab-Key.pem ec2-user@<Server-1-Public-IP>
+```
+
+Set the hostname:
+
 ```bash
 sudo hostnamectl set-hostname server-1
 exec $SHELL
@@ -238,7 +245,14 @@ Expected output:
 server-1
 ```
 
-#### Server-2
+#### Connect to Server-2
+
+```bash
+ssh -i Lab-Key.pem ec2-user@<Server-2-Public-IP>
+```
+
+Set the hostname:
+
 ```bash
 sudo hostnamectl set-hostname server-2
 exec $SHELL
@@ -251,7 +265,14 @@ Expected output:
 server-2
 ```
 
-#### Private Instance
+#### Connect to the Private Instance
+
+```bash
+ssh -i Lab-Key.pem ec2-user@<Private-Instance-Public-IP>
+```
+
+Set the hostname:
+
 ```bash
 sudo hostnamectl set-hostname private-server
 exec $SHELL
@@ -264,7 +285,7 @@ Expected output:
 private-server
 ```
 
-> **Note:** This step is optional and is only used to make SSH sessions easier to identify throughout the lab.
+> **Note:** This step is optional and is only intended to make SSH sessions easier to identify during the lab.
 
 ### Step-2
 
