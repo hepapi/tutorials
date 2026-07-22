@@ -70,7 +70,7 @@ ssh -i "Lab-Key" ec2-user@<Lab-1 Instance-Public-IP>
 
 ```text
 Name                 : Windows-Lab-Instance-<YourName>
-AMI                  : Microsoft Windows Server 2022 Base
+AMI                  : Microsoft Windows Server 2025 Base
 Instance Type        : t3.medium
 Key pair             : Lab-Key
 
@@ -127,12 +127,14 @@ Copy the generated Administrator password.
 
 ### Task 4 - Connect Using Remote Desktop (RDP)
 
+Open **Windows App** and click **+** and **Add PC**
+
 Copy the **Public IPv4 Address** of the instance.
 
 Open **Remote Desktop Connection (mstsc)**.
 
 ```text
-Computer:
+PC name:
 <Public-IP>
 
 Username:
