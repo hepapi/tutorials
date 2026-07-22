@@ -61,6 +61,175 @@ ssh -i "Lab-Key" ec2-user@<Lab-1 Instance-Public-IP>
 - Click on **Lab-1 Instance** ----> **Instance state** ----> **Terminate (delete) instance**
 - After terminating the instance, refresh your browser and verify that the connection to the Public IP is no longer accessible.
 
+## Part 1.2 - Launch a Windows EC2 Instance
+
+### Task 1 - Launch a Windows Instance
+
+- At the top of the AWS Management Console, search for and choose **EC2**
+- Click **Launch Instance**
+
+```text
+Name                 : Windows-Lab-Instance-<YourName>
+AMI                  : Microsoft Windows Server 2022 Base
+Instance Type        : t3.medium
+Key pair             : Lab-Key
+
+Network Settings
+    VPC              : default
+    Subnet           : No preference
+
+Firewall (Security Groups)
+    Security Group   : windows-lab-sg
+
+Inbound Rules
+    RDP (3389)       : My IP
+    HTTP (80)        : Anywhere
+```
+
+> **Note:** For security reasons, allow **RDP (3389)** access only from **My IP**.
+
+- Click **Launch Instance**
+
+---
+
+### Task 2 - Verify the Instance
+
+Wait until:
+
+- **Instance State:** Running
+- **Status Checks:** 2/2 checks passed
+
+---
+
+### Task 3 - Retrieve the Administrator Password
+
+Select your Windows instance.
+
+Choose:
+
+```text
+Actions
+→ Security
+→ Get Windows Password
+```
+
+Upload the **Lab-Key.pem** file used when creating the instance.
+
+Click:
+
+```text
+Decrypt Password
+```
+
+Copy the generated Administrator password.
+
+---
+
+### Task 4 - Connect Using Remote Desktop (RDP)
+
+Copy the **Public IPv4 Address** of the instance.
+
+Open **Remote Desktop Connection (mstsc)**.
+
+```text
+Computer:
+<Public-IP>
+
+Username:
+Administrator
+
+Password:
+<Decrypted Password>
+```
+
+Accept the certificate warning if prompted.
+
+---
+
+### Task 5 - Verify the Instance
+
+Open **PowerShell** and execute:
+
+```powershell
+hostname
+
+ipconfig
+
+systeminfo
+```
+
+Verify:
+
+- Hostname
+- Private IP Address
+- Windows Server Version
+
+---
+
+### Task 6 - Install IIS
+
+Open **PowerShell** as Administrator.
+
+```powershell
+Install-WindowsFeature -Name Web-Server -IncludeManagementTools
+```
+
+Wait until the installation completes.
+
+Open your browser and navigate to:
+
+```text
+http://<Public-IP>
+```
+
+You should see the default **Internet Information Services (IIS)** page.
+
+---
+
+### Task 7 - Deploy a Simple Web Page
+
+Replace the default IIS page.
+
+```powershell
+Set-Content "C:\inetpub\wwwroot\index.html" "<h1>Hello AWS Windows EC2</h1>"
+```
+
+Refresh the browser.
+
+Expected output:
+
+```text
+Hello AWS Windows EC2
+```
+
+---
+
+### Task 8 - Stop and Start the Instance
+
+1. Stop the instance.
+2. Start the instance again.
+
+Verify the following:
+
+- Instance ID remains the same.
+- Private IP address remains the same.
+- Public IP address changes (unless an Elastic IP is attached).
+
+---
+
+### Task 9 - Terminate the Instance
+
+After completing the lab:
+
+- Select the Windows instance.
+- Click **Instance State**
+- Choose **Terminate Instance**.
+- Confirm the termination.
+
+
+
+
+
 ## Part 2 - Launch an EC2 Spot Instances
 
 - Navigate to the **EC2 Dashboard**
