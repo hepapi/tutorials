@@ -388,7 +388,7 @@ Purchasing option    : Spot instances
 2. Select the AMI you want to make public.
 3. Scroll down to the **Permissions** tab and click on **Edit AMI Permissions**.
 4. If you see a restriction message, follow these steps:
-   - Go to **Data Protection and Security**.
+   - Go to **Setings** --> **Data Protection and Security**.
    - Click on **Manage** next to **Block public access for AMIs**.
    - Uncheck the **Block new public sharing** option and save the changes.
    - Return to the **Permissions** tab and set the AMI to **Public**.
