@@ -18,7 +18,7 @@ After completing this hands-on, you should know how to do the following:
 ```text
 Name                 : Lab-1 Instance-<YourName>
 AMI                  : Amazon Linux 2023 AMI
-Instance Type        : t2.micro
+Instance Type        : t3.micro
 Key pair name        : Lab-Key
 Network settings 
     VPC              : default
