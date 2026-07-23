@@ -246,7 +246,7 @@ Target capacity
    Total target capacity             : 2 (instance)
 Instance type requirements  
    Manually select instance types
-   Instance Types                    : t2.micro
+   Instance Types                    : t3.micro
 Allocation strategy
    Price capacity optimized (recommended)
 ```
@@ -283,7 +283,7 @@ Image name                           : Lab-1-Instance-Image-<YourName>
 ```text
 Name                 : Lab-1 Instance Snapshot-1-<YourName>
 AMI                  : Lab-1-Instance-Image-<YourName>
-Instance Type        : t2.micro
+Instance Type        : t3.micro
 Key pair name        : Lab-Key
 Network settings 
     VPC              : default
@@ -317,7 +317,7 @@ Image name           : Lab-1 Instance Snapshot-2-<YourName>
 ```text
 Name                 : Lab-1 Instance Snapshot-2-<YourName>
 My AMIs              : Lab-1 Instance Snapshot-2-<YourName>
-Instance Type        : t2.micro
+Instance Type        : t3.micro
 Key pair name        : Lab-Key
 Network settings 
     VPC              : default
@@ -361,7 +361,7 @@ Image name           : Lab-1 Instance Snapshot-3-<YourName>
 ```text
 Name                 : Lab-1 Instance Snapshot-3-<YourName>
 My AMIs              : Lab-1 Instance Snapshot-3-<YourName>
-Instance Type        : t2.micro
+Instance Type        : t3.micro
 Key pair name        : Lab-Key
 Network settings 
     VPC              : default
