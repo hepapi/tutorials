@@ -108,9 +108,7 @@ Select your Windows instance.
 Choose:
 
 ```text
-Actions
-→ Security
-→ Get Windows Password
+Actions → Security → Get Windows Password
 ```
 
 Upload the **Lab-Key.pem** file used when creating the instance.
