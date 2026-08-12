@@ -238,7 +238,7 @@ After completing the lab:
 
 ```text
 Launch parameters                    : Manually configure launch parameters
-AMI                                  : Amazon Linux 2023 AMI 2023.12.20260720.0 x86_64 HVM kernel-6.18
+AMI                                  : Amazon Linux 2023 AMI kernel-6.18 AMI
 Key pair name                        : Lab-Key
 Target capacity
    Total target capacity             : 2 (instance)
