@@ -3,6 +3,12 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Task 1 template which builds VPC, supporting resources, a basic networking structure, and some Security groups for use in later tasks.
 
 Parameters:
+  StudentName:
+    Description: Your name or initials. Used to keep exported values unique when multiple students deploy this template in the same AWS account/region.
+    Type: String
+    AllowedPattern: ^[a-zA-Z0-9]+$
+    ConstraintDescription: Use letters and numbers only, no spaces.
+
   VPCCIDR:
     Description: CIDR Block for VPC
     Type: String
@@ -65,10 +71,14 @@ Resources:
       InstanceTenancy: 'default'
       Tags:
         - Key: Name
-          Value: LabVPC
+          Value: !Sub "LabVPC-${StudentName}"
 
   LabInternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "LabInternetGateway-${StudentName}"
 
   AttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
@@ -84,7 +94,7 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
-          Value: NATGateway1
+          Value: !Sub "NATGateway1-${StudentName}"
 
   ElasticIPAddress1:
     Type: AWS::EC2::EIP
@@ -98,7 +108,7 @@ Resources:
       SubnetId: !Ref PublicSubnet2
       Tags:
         - Key: Name
-          Value: NATGateway2
+          Value: !Sub "NATGateway2-${StudentName}"
 
   ElasticIPAddress2:
     Type: AWS::EC2::EIP
@@ -117,7 +127,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: PublicSubnet1
+          Value: !Sub "PublicSubnet1-${StudentName}"
 
   PublicSubnet2:
     Type: 'AWS::EC2::Subnet'
@@ -130,7 +140,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: PublicSubnet2
+          Value: !Sub "PublicSubnet2-${StudentName}"
 
   AppSubnet1:
     Type: 'AWS::EC2::Subnet'
@@ -143,7 +153,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: AppSubnet1
+          Value: !Sub "AppSubnet1-${StudentName}"
 
   AppSubnet2:
     Type: 'AWS::EC2::Subnet'
@@ -156,7 +166,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: AppSubnet2
+          Value: !Sub "AppSubnet2-${StudentName}"
 
   DatabaseSubnet1:
     Type: 'AWS::EC2::Subnet'
@@ -169,7 +179,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: DatabaseSubnet1
+          Value: !Sub "DatabaseSubnet1-${StudentName}"
 
   DatabaseSubnet2:
     Type: 'AWS::EC2::Subnet'
@@ -182,7 +192,7 @@ Resources:
         - !GetAZs ''
       Tags:
         - Key: Name
-          Value: DatabaseSubnet2
+          Value: !Sub "DatabaseSubnet2-${StudentName}"
 
 #Routing
 #Route Tables
@@ -192,7 +202,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: PublicRouteTable
+          Value: !Sub "PublicRouteTable-${StudentName}"
 
   PrivateRouteTableAZ1:
     Type: 'AWS::EC2::RouteTable'
@@ -200,7 +210,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: PrivateRouteTableAZ1
+          Value: !Sub "PrivateRouteTableAZ1-${StudentName}"
 
   PrivateRouteTableAZ2:
     Type: 'AWS::EC2::RouteTable'
@@ -208,7 +218,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: PrivateRouteTableAZ2
+          Value: !Sub "PrivateRouteTableAZ2-${StudentName}"
 #Routes
   PublicRoute:
     Type: 'AWS::EC2::Route'
@@ -277,7 +287,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: AppInstanceSecurityGroup
+          Value: !Sub "AppInstanceSecurityGroup-${StudentName}"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -291,7 +301,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: RDSSecurityGroup
+          Value: !Sub "RDSSecurityGroup-${StudentName}"
 
   EFSMountTargetSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -300,7 +310,7 @@ Resources:
       VpcId: !Ref LabVPC
       Tags:
         - Key: Name
-          Value: EFSMountTargetSecurityGroup
+          Value: !Sub "EFSMountTargetSecurityGroup-${StudentName}"
       SecurityGroupIngress:
         - IpProtocol: tcp
           SourceSecurityGroupId: !Ref AppInstanceSecurityGroup
@@ -325,34 +335,34 @@ Outputs:
     Description: "The Subnet ID for the DB Subnet in AZ a"
     Value: !Ref DatabaseSubnet1
     Export:
-      Name: "DatabaseSubnet1ID"
+      Name: !Sub "DatabaseSubnet1ID-${StudentName}"
 
   DatabaseSubnet2ID:
     Description: "The Subnet ID for the DB Subnet in AZ b"
     Value: !Ref DatabaseSubnet2
     Export:
-      Name: "DatabaseSubnet2ID"
+      Name: !Sub "DatabaseSubnet2ID-${StudentName}"
 
   AppInstanceSecurityGroupID:
     Description: "The Security Group ID for the Lab Instance Security Group"
     Value: !Ref AppInstanceSecurityGroup
     Export:
-      Name: "AppInstanceSecurityGroupID"
+      Name: !Sub "AppInstanceSecurityGroupID-${StudentName}"
 
   EFSMountTargetSecurityGroupID:
     Description: "The Security Group ID for the Lab EFS Mount Target"
     Value: !Ref EFSMountTargetSecurityGroup
     Export:
-      Name: "EFSMountTargetSecurityGroupID"
+      Name: !Sub "EFSMountTargetSecurityGroupID-${StudentName}"
 
   RDSSecurityGroupID:
     Description: "The Security Group ID for the Lab RDS cluster"
     Value: !Ref RDSSecurityGroup
     Export:
-      Name: "RDSSecurityGroupID"
+      Name: !Sub "RDSSecurityGroupID-${StudentName}"
 
   VPCID:
     Description: "The VPC ID for the lab"
     Value: !Ref LabVPC
     Export:
-      Name: "VPCID"
+      Name: !Sub "VPCID-${StudentName}"

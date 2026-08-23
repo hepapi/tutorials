@@ -22,7 +22,10 @@ Metadata:
         default: Other Parameters
       Parameters:
         - EC2ServerInstanceType
+        - StudentName
     ParameterLabels:
+      StudentName:
+        default: Your Name
       DatabaseName:
         default: DB name
       DatabaseHostName:
@@ -41,6 +44,12 @@ Metadata:
         default: WordPress admin email address
 
 Parameters:
+
+  StudentName:
+    Description: Your name or initials. Must match the value you used in Task 1 (VPCStack), so this stack imports the right VPC and security groups.
+    Type: String
+    AllowedPattern: ^[a-zA-Z0-9]+$
+    ConstraintDescription: Use letters and numbers only, no spaces.
 
   LatestAL2023AmiId: # Locate latest Amazon Linux 2023 AMI from public parameter store
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
@@ -68,7 +77,7 @@ Parameters:
   DatabasePassword:
     Description: The Amazon RDS password.
     MaxLength: 41
-    MinLength: 6
+    MinLength: 8
     NoEcho: true
     Type: String
 
@@ -114,14 +123,16 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for web instances
-      GroupName: Wordpress Servers Security Group
+      GroupName: !Sub "WordpressServersSecurityGroup-${StudentName}"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !ImportValue AppInstanceSecurityGroupID
+          SourceSecurityGroupId: !ImportValue
+            Fn::Sub: "AppInstanceSecurityGroupID-${StudentName}"
       VpcId:
-        !ImportValue VPCID
+        !ImportValue
+          Fn::Sub: "VPCID-${StudentName}"
 
   EFSSecurityGroupInboundRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -130,7 +141,8 @@ Resources:
       FromPort: 2049
       ToPort: 2049
       SourceSecurityGroupId: !Ref WebTierSecurityGroup
-      GroupId: !ImportValue EFSMountTargetSecurityGroupID
+      GroupId: !ImportValue
+        Fn::Sub: "EFSMountTargetSecurityGroupID-${StudentName}"
 
   RDSSecurityGroupInboundRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -139,13 +151,14 @@ Resources:
       FromPort: 3306
       ToPort: 3306
       SourceSecurityGroupId: !Ref WebTierSecurityGroup
-      GroupId: !ImportValue RDSSecurityGroupID
+      GroupId: !ImportValue
+        Fn::Sub: "RDSSecurityGroupID-${StudentName}"
 # Lab Launch Template
 
   LabLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: LabLaunchTemplate
+      LaunchTemplateName: !Sub "LabLaunchTemplate-${StudentName}"
       LaunchTemplateData:
         UserData:
           "Fn::Base64":
@@ -163,10 +176,7 @@ Resources:
 
               #package installation
               dnf update -y
-              dnf install httpd gcc-c++ php wget php-{pear,devel,fpm,mysqli,cgi,common,curl,mbstring,gd,mysqlnd,gettext,bcmath,json,xml,fpm,intl,zip,devel,opcache} -y
-
-              systemctl enable nfs-server.service
-              systemctl start nfs-server.service
+              dnf install httpd gcc-c++ php wget nfs-utils php-{pear,devel,fpm,mysqli,cgi,common,curl,mbstring,gd,mysqlnd,gettext,bcmath,json,xml,fpm,intl,zip,devel,opcache} -y
 
               mkdir -p /var/www/wordpress
               mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${ElasticFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /var/www/wordpress
